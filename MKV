@@ -1,0 +1,29 @@
+#!/bin/bash
+#
+# Run 'make', saving all output into a file named LOG
+#
+# usage:
+#	MK  [args]   - prints timestamps and status
+#	MKV [args]   - echoes and saves 'make' output
+#
+
+# 
+name="`basename $0`"
+if [ "$name" = "MK" ]
+then
+	# run make, save output, check status
+	time1="`date`"
+	echo -n + make $* '> LOG 2>&1 ... '
+	if make $* > LOG 2>&1
+	then
+		echo done
+	else
+		echo check LOG for build errors
+	fi
+	time2="`date`"
+	echo  Start: $time1
+	echo "End:  " $time2
+else
+	# just do the make and save a copy of the output
+	echo + make $* '2>&1 | tee LOG'
+fi
