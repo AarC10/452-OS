@@ -1,0 +1,23 @@
+#!/bin/bash
+#
+# Run qemu-system-i386 on the baseline OS
+#
+
+#
+# Can supply additiona QEMU options on the command line - e.g.,
+#
+#	./QRUN -d int,pcall -D ./qlog.txt
+#
+# to have QEMU trace interrupts and protected-mode long/far calls.
+#
+# Other options:
+#	-nographic
+#	-display gtk
+#
+
+QEMU=/home/course/csci352/bin/qemu-system-i386
+
+exec $QEMU \
+	-serial mon:stdio \
+	-drive file=disk.img,index=0,media=disk,format=raw \
+	$*

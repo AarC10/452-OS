@@ -1,0 +1,30 @@
+#!/bin/bash
+#
+# Run XTR to extract text, data, and rodata sections from a file or files
+#
+# Usage:
+#	XTRA		extracts from 'kernel'
+#	XTRA f1 f2 ...  extracts from each named file
+#
+
+if [ $# -lt 1 ]
+then
+	files="kernel"
+else
+	files="$*"
+fi
+
+for f in $files
+do
+	if [ ! -f $f ]
+	then
+		echo file $f not found - skipping
+		continue
+	fi
+
+	XTR $f text
+	XTR $f data
+	XTR $f rodata
+done
+
+hexdump -C kernel.b > X/kernel.b.hex

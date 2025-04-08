@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+# Use QRUN to run QEMU with event tracing
+#
+
+./QRUN -d int,pcall -D ./qlog.txt

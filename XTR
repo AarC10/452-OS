@@ -1,0 +1,50 @@
+#!/bin/bash
+#
+# Extract a section from an ELF file in both binary and hex forms
+#
+# usage:
+#	XTR file sect
+#
+
+if [ $# -ne 2 ]
+then
+	echo usage: $0 file sect
+	exit 1
+fi
+
+if [ ! -f $1 ]
+then
+	echo cannot find $1
+	echo usage: $0 file sect
+	exit 2
+fi
+
+if [ ! -d X ]
+then
+	echo Creating extraction directory \'X\'
+	if ! mkdir X
+	then
+		echo X exists but is not a directory
+		exit 3
+	fi
+fi
+
+# assume the file is "x" or "x.o"
+prefix=`basename $1 .o`
+
+# strip off any leading '.' from the section
+case $2 in
+	.*)
+		sect="`echo $2 | sed -e 's/^.//'`"
+		;;
+	*)
+		sect="$2"
+		;;
+esac
+
+xtrfile="X/$prefix.$sect"
+
+echo Processing $1 into $xtrfile and $xtrfile.hex
+
+objcopy -S -O binary -j .$sect $1 $xtrfile
+hexdump -C $xtrfile > $xtrfile.hex
