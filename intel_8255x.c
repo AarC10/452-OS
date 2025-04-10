@@ -1,5 +1,5 @@
-#include "drivers/intel_8255x.h"
 #include <common.h>
+#include <drivers/intel_8255x.h>
 #include <types.h>
 #include <x86/ops.h>
 

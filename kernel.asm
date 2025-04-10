@@ -3925,17 +3925,17 @@ int main(void) {
    11da7:	e8 e4 0d 00 00       	call   12b90 <km_init>
 
   // other module initialization calls here
-  clk_init();  // clock
+  clk_init();         // clock
    11dac:	e8 ee fc ff ff       	call   11a9f <clk_init>
-  pcb_init();  // process (PCBs, queues, scheduler)
+  pcb_init();         // process (PCBs, queues, scheduler)
    11db1:	e8 0f 18 00 00       	call   135c5 <pcb_init>
-  sio_init();  // serial i/o
+  sio_init();         // serial i/o
    11db6:	e8 1e 30 00 00       	call   14dd9 <sio_init>
-  sys_init();  // system call
+  sys_init();         // system call
    11dbb:	e8 9f 4c 00 00       	call   16a5f <sys_init>
-  user_init(); // user code handling
+  user_init();        // user code handling
    11dc0:	e8 7c 4f 00 00       	call   16d41 <user_init>
-  intel_8255x_init();
+  intel_8255x_init(); // network driver
    11dc5:	e8 31 51 00 00       	call   16efb <intel_8255x_init>
   cio_puts("\nModule initialization complete.\n");
    11dca:	83 ec 0c             	sub    $0xc,%esp
@@ -13931,8 +13931,8 @@ void user_cleanup( pcb_t *pcb ) {
    16d83:	c3                   	ret    
 
 00016d84 <pci_read_config>:
-#include "drivers/intel_8255x.h"
 #include <common.h>
+#include <drivers/intel_8255x.h>
 #include <types.h>
 #include <x86/ops.h>
 

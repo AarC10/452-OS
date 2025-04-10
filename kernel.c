@@ -302,12 +302,12 @@ int main(void) {
   km_init(); // MUST BE FIRST
 
   // other module initialization calls here
-  clk_init();  // clock
-  pcb_init();  // process (PCBs, queues, scheduler)
-  sio_init();  // serial i/o
-  sys_init();  // system call
-  user_init(); // user code handling
-  intel_8255x_init();
+  clk_init();         // clock
+  pcb_init();         // process (PCBs, queues, scheduler)
+  sio_init();         // serial i/o
+  sys_init();         // system call
+  user_init();        // user code handling
+  intel_8255x_init(); // network driver
   cio_puts("\nModule initialization complete.\n");
 
 #if TRACING_INIT
