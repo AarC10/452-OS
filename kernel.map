@@ -507,38 +507,38 @@ OUTPUT(kernel elf32-i386)
  .debug_aranges
                 0x00000000000001e0       0x20 ulibc.o
 
-.debug_str      0x0000000000000000      0xf48
- .debug_str     0x0000000000000000       0x32 startup.o
- .debug_str     0x0000000000000032        0x7 isrs.o
-                                         0x2f (size before relaxing)
- .debug_str     0x0000000000000039      0x318 cio.o
-                                        0x3ad (size before relaxing)
- .debug_str     0x0000000000000351      0x222 clock.o
-                                        0x392 (size before relaxing)
- .debug_str     0x0000000000000573       0x36 kernel.o
-                                        0x392 (size before relaxing)
- .debug_str     0x00000000000005a9       0x72 klibc.o
-                                        0x420 (size before relaxing)
- .debug_str     0x000000000000061b      0x147 kmem.o
-                                        0x4b3 (size before relaxing)
- .debug_str     0x0000000000000762       0x2a list.o
-                                        0x15f (size before relaxing)
- .debug_str     0x000000000000078c      0x256 procs.o
-                                        0x5ca (size before relaxing)
- .debug_str     0x00000000000009e2       0xe9 sio.o
-                                        0x453 (size before relaxing)
- .debug_str     0x0000000000000acb       0xde support.o
-                                        0x23f (size before relaxing)
- .debug_str     0x0000000000000ba9       0xda syscalls.o
-                                        0x47f (size before relaxing)
- .debug_str     0x0000000000000c83       0x95 user.o
-                                        0x3a9 (size before relaxing)
- .debug_str     0x0000000000000d18        0x8 ulibs.o
+.debug_str      0x0000000000000000      0xf65
+ .debug_str     0x0000000000000000       0x33 startup.o
+ .debug_str     0x0000000000000033        0x7 isrs.o
                                          0x30 (size before relaxing)
- .debug_str     0x0000000000000d20      0x145 userland.o
+ .debug_str     0x000000000000003a      0x318 cio.o
+                                        0x3ae (size before relaxing)
+ .debug_str     0x0000000000000352      0x222 clock.o
+                                        0x393 (size before relaxing)
+ .debug_str     0x0000000000000574       0x36 kernel.o
+                                        0x393 (size before relaxing)
+ .debug_str     0x00000000000005aa       0x72 klibc.o
+                                        0x421 (size before relaxing)
+ .debug_str     0x000000000000061c      0x147 kmem.o
+                                        0x4b4 (size before relaxing)
+ .debug_str     0x0000000000000763       0x2a list.o
+                                        0x160 (size before relaxing)
+ .debug_str     0x000000000000078d      0x256 procs.o
+                                        0x5cb (size before relaxing)
+ .debug_str     0x00000000000009e3       0xe9 sio.o
+                                        0x454 (size before relaxing)
+ .debug_str     0x0000000000000acc       0xde support.o
+                                        0x240 (size before relaxing)
+ .debug_str     0x0000000000000baa       0xda syscalls.o
+                                        0x480 (size before relaxing)
+ .debug_str     0x0000000000000c84       0xb1 user.o
+                                        0x3a9 (size before relaxing)
+ .debug_str     0x0000000000000d35        0x8 ulibs.o
+                                         0x31 (size before relaxing)
+ .debug_str     0x0000000000000d3d      0x145 userland.o
                                         0x2f0 (size before relaxing)
- .debug_str     0x0000000000000e65       0xe3 ulibc.o
-                                        0x26c (size before relaxing)
+ .debug_str     0x0000000000000e82       0xe3 ulibc.o
+                                        0x26d (size before relaxing)
 
 .debug_ranges   0x0000000000000000       0x78
  .debug_ranges  0x0000000000000000       0x18 cio.o
