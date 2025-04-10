@@ -2,6 +2,7 @@
 #include <drivers/intel_8255x.h>
 #include <types.h>
 #include <x86/ops.h>
+#include <cio.h>
 
 static uint32_t pci_read_config(int bus, int device, int func, int offset) {
   uint32_t address =
@@ -41,21 +42,17 @@ int detect_intel_8255x() {
 
           if (device_id == 0x1227 || /* 82557 */
               device_id == 0x1229) { /* 82559 */
+                // cio_printf("e100: found Intel 8255x at bus %d, device %d, function %d\n", bus, dev, func);
 
-            cio_printf(
-                "e100: found Intel 8255x at bus %d, device %d, function %d\n",
-                bus, dev, func);
+                // Get I/O base address
+                uint32_t io_bar = pci_read_config(bus, dev, func, 0x10);
+                uint32_t io_base = io_bar & ~0x3; /* Mask off the low bits */
 
-            // Get I/O base address
-            uint32_t io_bar = pci_read_config(bus, dev, func, 0x10);
-            uint32_t io_base = io_bar & ~0x3; /* Mask off the low bits */
+                // Get interrupt line
+                uint8_t irq = pci_read_config(bus, dev, func, 0x3C) & 0xFF;
+                // cio_printf("e100: I/O base = 0x%x, IRQ = %d\n", io_base, irq);
 
-            // Get interrupt line
-            uint8_t irq = pci_read_config(bus, dev, func, 0x3C) & 0xFF;
-
-            cio_printf("e100: I/O base = 0x%x, IRQ = %d\n", io_base, irq);
-
-            return 0;
+                return 0;
           }
         }
       }
