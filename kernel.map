@@ -1,0 +1,547 @@
+
+Allocating common symbols
+Common symbol       size              file
+
+pcb_freelist        0x4               procs.o
+b512                0x200             kernel.o
+sioread             0x4               procs.o
+sleeping            0x4               procs.o
+init_pcb            0x4               procs.o
+b256                0x100             kernel.o
+mbz                 0x4               syscalls.o
+system_time         0x4               clock.o
+waiting             0x4               procs.o
+current             0x4               procs.o
+zombie              0x4               procs.o
+isr_table           0x400             support.o
+next_pid            0x4               procs.o
+ptable              0x4b0             procs.o
+ready               0x4               procs.o
+kstack              0x1000            kernel.o
+
+Discarded input sections
+
+ .comment       0x0000000000000000       0x2a cio.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 cio.o
+ .eh_frame      0x0000000000000000      0x318 cio.o
+ .comment       0x0000000000000000       0x2a clock.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 clock.o
+ .eh_frame      0x0000000000000000       0x68 clock.o
+ .comment       0x0000000000000000       0x2a kernel.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 kernel.o
+ .eh_frame      0x0000000000000000       0x90 kernel.o
+ .comment       0x0000000000000000       0x2a klibc.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 klibc.o
+ .eh_frame      0x0000000000000000      0x334 klibc.o
+ .comment       0x0000000000000000       0x2a kmem.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 kmem.o
+ .eh_frame      0x0000000000000000      0x140 kmem.o
+ .comment       0x0000000000000000       0x2a list.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 list.o
+ .eh_frame      0x0000000000000000       0x58 list.o
+ .comment       0x0000000000000000       0x2a procs.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 procs.o
+ .eh_frame      0x0000000000000000      0x3b0 procs.o
+ .comment       0x0000000000000000       0x2a sio.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 sio.o
+ .eh_frame      0x0000000000000000      0x1a8 sio.o
+ .comment       0x0000000000000000       0x2a support.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 support.o
+ .eh_frame      0x0000000000000000      0x154 support.o
+ .comment       0x0000000000000000       0x2a syscalls.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 syscalls.o
+ .eh_frame      0x0000000000000000      0x200 syscalls.o
+ .comment       0x0000000000000000       0x2a user.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 user.o
+ .eh_frame      0x0000000000000000       0x88 user.o
+ .comment       0x0000000000000000       0x2a userland.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 userland.o
+ .eh_frame      0x0000000000000000      0x310 userland.o
+ .comment       0x0000000000000000       0x2a ulibc.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 ulibc.o
+ .eh_frame      0x0000000000000000      0x3d4 ulibc.o
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+                0x0000000000010000                . = 0x10000
+
+.text           0x0000000000010000     0xa2c1
+ *(.text .stub .text.* .gnu.linkonce.t.*)
+ .text          0x0000000000010000       0x40 startup.o
+                0x0000000000010000                begtext
+                0x0000000000010000                _start
+ .text          0x0000000000010040      0xab8 isrs.o
+                0x000000000001006c                isr_restore
+ .text          0x0000000000010af8      0xd6a cio.o
+                0x0000000000010bf3                cio_setscroll
+                0x0000000000010c95                cio_moveto
+                0x0000000000010cf5                cio_putchar_at
+                0x0000000000010d6d                cio_putchar
+                0x0000000000010e6b                cio_puts_at
+                0x0000000000010ead                cio_puts
+                0x0000000000010ede                cio_write
+                0x0000000000010f16                cio_clearscroll
+                0x0000000000010f8f                cio_clearscreen
+                0x0000000000010fff                cio_scroll
+                0x0000000000011507                cio_printf_at
+                0x0000000000011527                cio_printf
+                0x00000000000116b4                cio_getchar
+                0x000000000001175a                cio_gets
+                0x00000000000117ab                cio_input_queue
+                0x00000000000117d6                cio_init
+ .text          0x0000000000011862      0x2d3 clock.o
+                0x0000000000011a9f                clk_init
+ .text          0x0000000000011b35      0x4fc kernel.o
+                0x0000000000011d4b                main
+ .text          0x0000000000012031      0xa50 klibc.o
+                0x0000000000012031                blkmov
+                0x00000000000120cb                bound
+                0x00000000000120ef                cvtdec
+                0x0000000000012136                cvtdec0
+                0x00000000000121bf                cvthex
+                0x0000000000012249                cvtoct
+                0x00000000000122d3                cvtuns
+                0x0000000000012305                cvtuns0
+                0x000000000001236b                put_char_or_code
+                0x00000000000123a4                backtrace
+                0x0000000000012462                kpanic
+                0x000000000001255f                memclr
+                0x0000000000012580                memcpy
+                0x00000000000125ad                memmove
+                0x00000000000125ff                memset
+                0x0000000000012623                pad
+                0x0000000000012645                padstr
+                0x00000000000126e2                sprint
+                0x0000000000012957                str2int
+                0x00000000000129c9                strcat
+                0x00000000000129ff                strcmp
+                0x0000000000012a35                strcpy
+                0x0000000000012a5f                strlen
+ .text          0x0000000000012a81      0x7ef kmem.o
+                0x0000000000012b8b                km_init
+                0x0000000000012d65                km_dump
+                0x0000000000012e2d                km_page_alloc
+                0x0000000000012f32                km_page_free
+                0x0000000000012f53                km_page_free_multi
+                0x0000000000013122                km_slice_alloc
+                0x00000000000131f3                km_slice_free
+ .text          0x0000000000013270      0x107 list.o
+                0x0000000000013270                list_add
+                0x000000000001330d                list_remove
+ .text          0x0000000000013377     0x1737 procs.o
+                0x00000000000135c0                pcb_init
+                0x0000000000013841                pcb_alloc
+                0x00000000000138b7                pcb_free
+                0x0000000000013941                pcb_stack_alloc
+                0x0000000000013985                pcb_stack_free
+                0x00000000000139ed                pcb_zombify
+                0x0000000000013c81                pcb_cleanup
+                0x0000000000013cae                pcb_find_pid
+                0x0000000000013d00                pcb_find_ppid
+                0x0000000000013da0                pcb_queue_reset
+                0x0000000000013e19                pcb_queue_empty
+                0x0000000000013e6c                pcb_queue_length
+                0x0000000000013ed1                pcb_queue_insert
+                0x00000000000140b7                pcb_queue_remove
+                0x000000000001418e                pcb_queue_remove_this
+                0x000000000001434c                pcb_queue_peek
+                0x00000000000143aa                schedule
+                0x000000000001446b                dispatch
+                0x0000000000014542                ctx_dump
+                0x0000000000014634                ctx_dump_all
+                0x00000000000146a9                pcb_dump
+                0x00000000000147e8                pcb_queue_dump
+                0x00000000000148fb                ptable_dump
+                0x00000000000149e6                ptable_dump_counts
+ .text          0x0000000000014aae      0xa0b sio.o
+                0x0000000000014dd4                sio_init
+                0x0000000000014f47                sio_enable
+                0x0000000000014fbf                sio_disable
+                0x0000000000015037                sio_flush
+                0x00000000000150ed                sio_inq_length
+                0x00000000000150f7                sio_readc
+                0x0000000000015158                sio_read
+                0x00000000000151f3                sio_writec
+                0x0000000000015268                sio_write
+                0x000000000001530f                sio_puts
+                0x000000000001533c                sio_dump
+ .text          0x00000000000154b9      0x2f8 support.o
+                0x0000000000015732                panic
+                0x000000000001574e                init_interrupts
+                0x0000000000015761                install_isr
+                0x0000000000015786                delay
+ .text          0x00000000000157b1     0x12d7 syscalls.o
+                0x00000000000157b1                sys_exit
+                0x0000000000015870                sys_waitpid
+                0x0000000000015b79                sys_fork
+                0x0000000000015de5                sys_exec
+                0x0000000000015f74                sys_read
+                0x0000000000016165                sys_write
+                0x000000000001626f                sys_getpid
+                0x00000000000162ec                sys_getppid
+                0x00000000000163b1                sys_gettime
+                0x000000000001642e                sys_getprio
+                0x00000000000164ab                sys_setprio
+                0x0000000000016541                sys_kill
+                0x0000000000016834                sys_sleep
+                0x0000000000016a5a                sys_init
+ .text          0x0000000000016a88      0x2f7 user.o
+                0x0000000000016a88                stack_setup
+                0x0000000000016d3c                user_init
+                0x0000000000016d55                user_cleanup
+ .text          0x0000000000016d7f       0x76 ulibs.o
+                0x0000000000016d7f                exit
+                0x0000000000016d87                waitpid
+                0x0000000000016d8f                fork
+                0x0000000000016d97                exec
+                0x0000000000016d9f                read
+                0x0000000000016da7                write
+                0x0000000000016daf                getpid
+                0x0000000000016db7                getppid
+                0x0000000000016dbf                gettime
+                0x0000000000016dc7                getprio
+                0x0000000000016dcf                setprio
+                0x0000000000016dd7                kill
+                0x0000000000016ddf                sleep
+                0x0000000000016de7                bogus
+                0x0000000000016def                fake_exit
+ .text          0x0000000000016df5     0x2b17 userland.o
+                0x0000000000016df5                idle
+                0x0000000000017036                shell
+                0x0000000000017339                init
+                0x000000000001755e                progABC
+                0x0000000000017799                progDE
+                0x0000000000017966                progFG
+                0x0000000000017b4b                progH
+                0x0000000000017d31                progZ
+                0x0000000000017ef8                progI
+                0x000000000001826b                progW
+                0x0000000000018476                progJ
+                0x0000000000018631                progY
+                0x00000000000187d5                progKL
+                0x00000000000189c4                progX
+                0x0000000000018b58                progMN
+                0x0000000000018dc0                progP
+                0x0000000000018f79                progQ
+                0x00000000000190be                progR
+                0x0000000000019313                progS
+                0x0000000000019496                progTUV
+ .text          0x000000000001990c      0x9b5 ulibc.o
+                0x000000000001990c                ublkmov
+                0x00000000000199a6                umemclr
+                0x00000000000199c7                umemcpy
+                0x00000000000199f4                umemmove
+                0x0000000000019a46                umemset
+                0x0000000000019a6a                upad
+                0x0000000000019a8c                upadstr
+                0x0000000000019b29                usprint
+                0x0000000000019d9e                ustr2int
+                0x0000000000019e10                ustrcat
+                0x0000000000019e46                ustrcmp
+                0x0000000000019e7c                ustrcpy
+                0x0000000000019ea6                ustrlen
+                0x0000000000019ec8                ubound
+                0x0000000000019eec                ucvtdec
+                0x0000000000019f33                ucvtdec0
+                0x0000000000019fbc                ucvthex
+                0x000000000001a046                ucvtoct
+                0x000000000001a0d0                ucvtuns
+                0x000000000001a102                ucvtuns0
+                0x000000000001a168                wait
+                0x000000000001a180                spawn
+                0x000000000001a1f5                cwritech
+                0x000000000001a216                cwrites
+                0x000000000001a240                cwrite
+                0x000000000001a25b                swritech
+                0x000000000001a27c                swrites
+                0x000000000001a2a6                swrite
+                [!provide]                        PROVIDE (etext = .)
+                [!provide]                        PROVIDE (_etext = .)
+
+.iplt           0x000000000001a2c8        0x0
+ .iplt          0x000000000001a2c8        0x0 startup.o
+
+.rodata         0x000000000001a2e0     0x1c1d
+ *(.rodata .rodata.* .gnu.linkonce.r.*)
+ .rodata        0x000000000001a2e0      0x4b6 isrs.o
+                0x000000000001a396                isr_stub_table
+ *fill*         0x000000000001a796        0x2 
+ .rodata        0x000000000001a798       0x58 cio.o
+ .rodata        0x000000000001a7f0       0x90 clock.o
+ .rodata        0x000000000001a880      0x3a5 kernel.o
+ *fill*         0x000000000001ac25        0x3 
+ .rodata        0x000000000001ac28       0xe8 klibc.o
+ .rodata        0x000000000001ad10      0x15a kmem.o
+ *fill*         0x000000000001ae6a        0x2 
+ .rodata        0x000000000001ae6c       0x4c list.o
+ *fill*         0x000000000001aeb8        0x8 
+ .rodata        0x000000000001aec0      0x5d5 procs.o
+                0x000000000001aec0                state_str
+                0x000000000001aee4                prio_str
+                0x000000000001aef8                ord_str
+ *fill*         0x000000000001b495        0x3 
+ .rodata        0x000000000001b498      0x15c sio.o
+ .rodata        0x000000000001b5f4       0xb6 support.o
+ *fill*         0x000000000001b6aa       0x16 
+ .rodata        0x000000000001b6c0      0x260 syscalls.o
+ .rodata        0x000000000001b920        0x6 user.o
+ *fill*         0x000000000001b926        0x2 
+ .rodata        0x000000000001b928      0x560 userland.o
+ .rodata        0x000000000001be88       0x75 ulibc.o
+
+.rel.dyn        0x000000000001bf00        0x0
+ .rel.got       0x000000000001bf00        0x0 startup.o
+ .rel.iplt      0x000000000001bf00        0x0 startup.o
+ .rel.text      0x000000000001bf00        0x0 startup.o
+ .rel.data      0x000000000001bf00        0x0 startup.o
+                0x000000000001c000                . = ALIGN (0x1000)
+                [!provide]                        PROVIDE (data = .)
+                [!provide]                        PROVIDE (_data = .)
+
+.data           0x000000000001c000      0x63d
+ *(.data .data.*)
+ .data          0x000000000001c000        0x0 startup.o
+ .data          0x000000000001c000        0x0 isrs.o
+ .data          0x000000000001c000      0x10c cio.o
+ .data          0x000000000001c10c        0x0 clock.o
+ .data          0x000000000001c10c        0x4 kernel.o
+                0x000000000001c10c                kernel_esp
+ .data          0x000000000001c110        0x0 klibc.o
+ .data          0x000000000001c110        0x0 kmem.o
+ .data          0x000000000001c110        0x0 list.o
+ .data          0x000000000001c110        0x0 procs.o
+ .data          0x000000000001c110        0x0 sio.o
+ .data          0x000000000001c110        0x0 support.o
+ .data          0x000000000001c110        0x0 syscalls.o
+ .data          0x000000000001c110        0x0 user.o
+ .data          0x000000000001c110        0x0 ulibs.o
+ *fill*         0x000000000001c110       0x10 
+ .data          0x000000000001c120      0x51d userland.o
+ .data          0x000000000001c63d        0x0 ulibc.o
+                [!provide]                        PROVIDE (edata = .)
+                [!provide]                        PROVIDE (_edata = .)
+
+.got            0x000000000001c640        0x0
+ .got           0x000000000001c640        0x0 startup.o
+
+.got.plt        0x000000000001c640        0x0
+ .got.plt       0x000000000001c640        0x0 startup.o
+
+.igot.plt       0x000000000001c640        0x0
+ .igot.plt      0x000000000001c640        0x0 startup.o
+                0x000000000001d000                . = ALIGN (0x1000)
+                0x000000000001d000                PROVIDE (__bss_start = .)
+
+.bss            0x000000000001d000     0x48e4
+ *(.bss .bss.*)
+ .bss           0x000000000001d000        0x0 startup.o
+ .bss           0x000000000001d000        0x0 isrs.o
+ .bss           0x000000000001d000      0x10c cio.o
+ .bss           0x000000000001d10c        0x8 clock.o
+ .bss           0x000000000001d114        0x0 kernel.o
+ .bss           0x000000000001d114        0x0 klibc.o
+ .bss           0x000000000001d114       0x14 kmem.o
+ .bss           0x000000000001d128        0x0 list.o
+ .bss           0x000000000001d128       0x48 procs.o
+ *fill*         0x000000000001d170       0x10 
+ .bss           0x000000000001d180     0x1031 sio.o
+ .bss           0x000000000001e1b1        0x0 support.o
+ .bss           0x000000000001e1b1        0x0 syscalls.o
+ .bss           0x000000000001e1b1        0x0 user.o
+ .bss           0x000000000001e1b1        0x0 ulibs.o
+ *fill*         0x000000000001e1b1        0x3 
+ .bss           0x000000000001e1b4        0x8 userland.o
+ .bss           0x000000000001e1bc        0x0 ulibc.o
+ *(COMMON)
+ COMMON         0x000000000001e1bc        0x4 clock.o
+                0x000000000001e1bc                system_time
+ *fill*         0x000000000001e1c0      0xe40 
+ COMMON         0x000000000001f000     0x2000 kernel.o
+                0x000000000001f000                b512
+                0x000000000001f200                b256
+                0x0000000000020000                kstack
+ COMMON         0x0000000000021000      0x4d4 procs.o
+                0x0000000000021000                pcb_freelist
+                0x0000000000021004                sioread
+                0x0000000000021008                sleeping
+                0x000000000002100c                init_pcb
+                0x0000000000021010                waiting
+                0x0000000000021014                current
+                0x0000000000021018                zombie
+                0x000000000002101c                next_pid
+                0x0000000000021020                ptable
+                0x00000000000214d0                ready
+ *fill*         0x00000000000214d4        0xc 
+ COMMON         0x00000000000214e0      0x400 support.o
+                0x00000000000214e0                isr_table
+ COMMON         0x00000000000218e0        0x4 syscalls.o
+                0x00000000000218e0                mbz
+                [!provide]                        PROVIDE (end = .)
+                0x00000000000218e4                PROVIDE (_end = .)
+
+/DISCARD/
+ *(.stab .stab_info .stabstr)
+ *(.eh_frame .eh_frame_hdr)
+ *(.note.GNU-stack .note.gnu.property .comment)
+LOAD startup.o
+LOAD isrs.o
+LOAD cio.o
+LOAD clock.o
+LOAD kernel.o
+LOAD klibc.o
+LOAD kmem.o
+LOAD list.o
+LOAD procs.o
+LOAD sio.o
+LOAD support.o
+LOAD syscalls.o
+LOAD user.o
+LOAD ulibs.o
+LOAD userland.o
+LOAD ulibc.o
+OUTPUT(kernel elf32-i386)
+
+.debug_line     0x0000000000000000     0x29b5
+ .debug_line    0x0000000000000000       0x52 startup.o
+ .debug_line    0x0000000000000052      0x121 isrs.o
+ .debug_line    0x0000000000000173      0x2ed cio.o
+ .debug_line    0x0000000000000460      0x109 clock.o
+ .debug_line    0x0000000000000569      0x117 kernel.o
+ .debug_line    0x0000000000000680      0x2af klibc.o
+ .debug_line    0x000000000000092f      0x215 kmem.o
+ .debug_line    0x0000000000000b44       0x8b list.o
+ .debug_line    0x0000000000000bcf      0x4c0 procs.o
+ .debug_line    0x000000000000108f      0x2ae sio.o
+ .debug_line    0x000000000000133d      0x10f support.o
+ .debug_line    0x000000000000144c      0x456 syscalls.o
+ .debug_line    0x00000000000018a2       0xf3 user.o
+ .debug_line    0x0000000000001995       0x48 ulibs.o
+ .debug_line    0x00000000000019dd      0xc4d userland.o
+ .debug_line    0x000000000000262a      0x38b ulibc.o
+
+.debug_info     0x0000000000000000     0x7b87
+ .debug_info    0x0000000000000000       0x26 startup.o
+ .debug_info    0x0000000000000026       0x26 isrs.o
+ .debug_info    0x000000000000004c      0xb1e cio.o
+ .debug_info    0x0000000000000b6a      0x5bd clock.o
+ .debug_info    0x0000000000001127      0x579 kernel.o
+ .debug_info    0x00000000000016a0      0xc29 klibc.o
+ .debug_info    0x00000000000022c9      0x92b kmem.o
+ .debug_info    0x0000000000002bf4      0x1c9 list.o
+ .debug_info    0x0000000000002dbd      0xf4e procs.o
+ .debug_info    0x0000000000003d0b      0xc25 sio.o
+ .debug_info    0x0000000000004930      0x53a support.o
+ .debug_info    0x0000000000004e6a      0xa2b syscalls.o
+ .debug_info    0x0000000000005895      0x5f1 user.o
+ .debug_info    0x0000000000005e86       0x26 ulibs.o
+ .debug_info    0x0000000000005eac     0x13ad userland.o
+ .debug_info    0x0000000000007259      0x92e ulibc.o
+
+.debug_abbrev   0x0000000000000000     0x182e
+ .debug_abbrev  0x0000000000000000       0x14 startup.o
+ .debug_abbrev  0x0000000000000014       0x14 isrs.o
+ .debug_abbrev  0x0000000000000028      0x2c9 cio.o
+ .debug_abbrev  0x00000000000002f1      0x18c clock.o
+ .debug_abbrev  0x000000000000047d      0x172 kernel.o
+ .debug_abbrev  0x00000000000005ef      0x274 klibc.o
+ .debug_abbrev  0x0000000000000863      0x1c1 kmem.o
+ .debug_abbrev  0x0000000000000a24      0x108 list.o
+ .debug_abbrev  0x0000000000000b2c      0x21c procs.o
+ .debug_abbrev  0x0000000000000d48      0x27b sio.o
+ .debug_abbrev  0x0000000000000fc3      0x1e1 support.o
+ .debug_abbrev  0x00000000000011a4      0x21c syscalls.o
+ .debug_abbrev  0x00000000000013c0      0x18a user.o
+ .debug_abbrev  0x000000000000154a       0x14 ulibs.o
+ .debug_abbrev  0x000000000000155e      0x1a8 userland.o
+ .debug_abbrev  0x0000000000001706      0x128 ulibc.o
+
+.debug_aranges  0x0000000000000000      0x200
+ .debug_aranges
+                0x0000000000000000       0x20 startup.o
+ .debug_aranges
+                0x0000000000000020       0x20 isrs.o
+ .debug_aranges
+                0x0000000000000040       0x20 cio.o
+ .debug_aranges
+                0x0000000000000060       0x20 clock.o
+ .debug_aranges
+                0x0000000000000080       0x20 kernel.o
+ .debug_aranges
+                0x00000000000000a0       0x20 klibc.o
+ .debug_aranges
+                0x00000000000000c0       0x20 kmem.o
+ .debug_aranges
+                0x00000000000000e0       0x20 list.o
+ .debug_aranges
+                0x0000000000000100       0x20 procs.o
+ .debug_aranges
+                0x0000000000000120       0x20 sio.o
+ .debug_aranges
+                0x0000000000000140       0x20 support.o
+ .debug_aranges
+                0x0000000000000160       0x20 syscalls.o
+ .debug_aranges
+                0x0000000000000180       0x20 user.o
+ .debug_aranges
+                0x00000000000001a0       0x20 ulibs.o
+ .debug_aranges
+                0x00000000000001c0       0x20 userland.o
+ .debug_aranges
+                0x00000000000001e0       0x20 ulibc.o
+
+.debug_str      0x0000000000000000      0xf48
+ .debug_str     0x0000000000000000       0x32 startup.o
+ .debug_str     0x0000000000000032        0x7 isrs.o
+                                         0x2f (size before relaxing)
+ .debug_str     0x0000000000000039      0x318 cio.o
+                                        0x3ad (size before relaxing)
+ .debug_str     0x0000000000000351      0x222 clock.o
+                                        0x392 (size before relaxing)
+ .debug_str     0x0000000000000573       0x36 kernel.o
+                                        0x392 (size before relaxing)
+ .debug_str     0x00000000000005a9       0x72 klibc.o
+                                        0x420 (size before relaxing)
+ .debug_str     0x000000000000061b      0x147 kmem.o
+                                        0x4b3 (size before relaxing)
+ .debug_str     0x0000000000000762       0x2a list.o
+                                        0x15f (size before relaxing)
+ .debug_str     0x000000000000078c      0x256 procs.o
+                                        0x5ca (size before relaxing)
+ .debug_str     0x00000000000009e2       0xe9 sio.o
+                                        0x453 (size before relaxing)
+ .debug_str     0x0000000000000acb       0xde support.o
+                                        0x23f (size before relaxing)
+ .debug_str     0x0000000000000ba9       0xda syscalls.o
+                                        0x47f (size before relaxing)
+ .debug_str     0x0000000000000c83       0x95 user.o
+                                        0x3a9 (size before relaxing)
+ .debug_str     0x0000000000000d18        0x8 ulibs.o
+                                         0x30 (size before relaxing)
+ .debug_str     0x0000000000000d20      0x145 userland.o
+                                        0x2f0 (size before relaxing)
+ .debug_str     0x0000000000000e65       0xe3 ulibc.o
+                                        0x26c (size before relaxing)
+
+.debug_ranges   0x0000000000000000       0x78
+ .debug_ranges  0x0000000000000000       0x18 cio.o
+ .debug_ranges  0x0000000000000018       0x18 clock.o
+ .debug_ranges  0x0000000000000030       0x18 syscalls.o
+ .debug_ranges  0x0000000000000048       0x30 userland.o
