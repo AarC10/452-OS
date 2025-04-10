@@ -1,0 +1,15 @@
+*.o
+*.sym
+*.b
+*.map
+*.asm
+*.dis
+*.hex
+*.X
+*.i
+*.lst
+*.nll
+*.nl
+kernel
+kernel.img
+BuildImage
