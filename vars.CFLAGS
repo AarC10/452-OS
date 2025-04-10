@@ -1,1 +1,1 @@
--m32 -ggdb -fno-pic -fno-pie -std=c99 -fno-stack-protector -fno-builtin -Wall -Wstrict-prototypes -MD -DOS_CONFIG -DSYSTEM_STATUS=10 -DFORCE_INLINING -DCONSOLE_STATS -DRPT_INT_UNEXP -DTRACE_CX -DT_INIT  -nostdinc -I. -I./include -I./include/drivers
+-m32 -ggdb -fno-pic -fno-pie -std=c99 -fno-stack-protector -fno-builtin -Wall -Wstrict-prototypes -MD -DOS_CONFIG -DSYSTEM_STATUS=10 -DFORCE_INLINING -DCONSOLE_STATS -DRPT_INT_UNEXP -DTRACE_CX -DT_INIT  -nostdinc -I. -I./include 

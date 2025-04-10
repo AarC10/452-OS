@@ -68,6 +68,7 @@ Discarded input sections
  .comment       0x0000000000000000       0x2a intel_8255x.o
  .note.GNU-stack
                 0x0000000000000000        0x0 intel_8255x.o
+ .eh_frame      0x0000000000000000       0x38 intel_8255x.o
  .comment       0x0000000000000000       0x2a userland.o
  .note.GNU-stack
                 0x0000000000000000        0x0 userland.o
@@ -86,7 +87,7 @@ Linker script and memory map
 
                 0x0000000000010000                . = 0x10000
 
-.text           0x0000000000010000     0xa2c1
+.text           0x0000000000010000     0xa2cb
  *(.text .stub .text.* .gnu.linkonce.t.*)
  .text          0x0000000000010000       0x40 startup.o
                 0x0000000000010000                begtext
@@ -210,78 +211,79 @@ Linker script and memory map
                 0x0000000000016a88                stack_setup
                 0x0000000000016d3c                user_init
                 0x0000000000016d55                user_cleanup
- .text          0x0000000000016d7f        0x0 intel_8255x.o
- .text          0x0000000000016d7f       0x76 ulibs.o
-                0x0000000000016d7f                exit
-                0x0000000000016d87                waitpid
-                0x0000000000016d8f                fork
-                0x0000000000016d97                exec
-                0x0000000000016d9f                read
-                0x0000000000016da7                write
-                0x0000000000016daf                getpid
-                0x0000000000016db7                getppid
-                0x0000000000016dbf                gettime
-                0x0000000000016dc7                getprio
-                0x0000000000016dcf                setprio
-                0x0000000000016dd7                kill
-                0x0000000000016ddf                sleep
-                0x0000000000016de7                bogus
-                0x0000000000016def                fake_exit
- .text          0x0000000000016df5     0x2b17 userland.o
-                0x0000000000016df5                idle
-                0x0000000000017036                shell
-                0x0000000000017339                init
-                0x000000000001755e                progABC
-                0x0000000000017799                progDE
-                0x0000000000017966                progFG
-                0x0000000000017b4b                progH
-                0x0000000000017d31                progZ
-                0x0000000000017ef8                progI
-                0x000000000001826b                progW
-                0x0000000000018476                progJ
-                0x0000000000018631                progY
-                0x00000000000187d5                progKL
-                0x00000000000189c4                progX
-                0x0000000000018b58                progMN
-                0x0000000000018dc0                progP
-                0x0000000000018f79                progQ
-                0x00000000000190be                progR
-                0x0000000000019313                progS
-                0x0000000000019496                progTUV
- .text          0x000000000001990c      0x9b5 ulibc.o
-                0x000000000001990c                ublkmov
-                0x00000000000199a6                umemclr
-                0x00000000000199c7                umemcpy
-                0x00000000000199f4                umemmove
-                0x0000000000019a46                umemset
-                0x0000000000019a6a                upad
-                0x0000000000019a8c                upadstr
-                0x0000000000019b29                usprint
-                0x0000000000019d9e                ustr2int
-                0x0000000000019e10                ustrcat
-                0x0000000000019e46                ustrcmp
-                0x0000000000019e7c                ustrcpy
-                0x0000000000019ea6                ustrlen
-                0x0000000000019ec8                ubound
-                0x0000000000019eec                ucvtdec
-                0x0000000000019f33                ucvtdec0
-                0x0000000000019fbc                ucvthex
-                0x000000000001a046                ucvtoct
-                0x000000000001a0d0                ucvtuns
-                0x000000000001a102                ucvtuns0
-                0x000000000001a168                wait
-                0x000000000001a180                spawn
-                0x000000000001a1f5                cwritech
-                0x000000000001a216                cwrites
-                0x000000000001a240                cwrite
-                0x000000000001a25b                swritech
-                0x000000000001a27c                swrites
-                0x000000000001a2a6                swrite
+ .text          0x0000000000016d7f        0xa intel_8255x.o
+                0x0000000000016d7f                detect_intel_8255x
+ .text          0x0000000000016d89       0x76 ulibs.o
+                0x0000000000016d89                exit
+                0x0000000000016d91                waitpid
+                0x0000000000016d99                fork
+                0x0000000000016da1                exec
+                0x0000000000016da9                read
+                0x0000000000016db1                write
+                0x0000000000016db9                getpid
+                0x0000000000016dc1                getppid
+                0x0000000000016dc9                gettime
+                0x0000000000016dd1                getprio
+                0x0000000000016dd9                setprio
+                0x0000000000016de1                kill
+                0x0000000000016de9                sleep
+                0x0000000000016df1                bogus
+                0x0000000000016df9                fake_exit
+ .text          0x0000000000016dff     0x2b17 userland.o
+                0x0000000000016dff                idle
+                0x0000000000017040                shell
+                0x0000000000017343                init
+                0x0000000000017568                progABC
+                0x00000000000177a3                progDE
+                0x0000000000017970                progFG
+                0x0000000000017b55                progH
+                0x0000000000017d3b                progZ
+                0x0000000000017f02                progI
+                0x0000000000018275                progW
+                0x0000000000018480                progJ
+                0x000000000001863b                progY
+                0x00000000000187df                progKL
+                0x00000000000189ce                progX
+                0x0000000000018b62                progMN
+                0x0000000000018dca                progP
+                0x0000000000018f83                progQ
+                0x00000000000190c8                progR
+                0x000000000001931d                progS
+                0x00000000000194a0                progTUV
+ .text          0x0000000000019916      0x9b5 ulibc.o
+                0x0000000000019916                ublkmov
+                0x00000000000199b0                umemclr
+                0x00000000000199d1                umemcpy
+                0x00000000000199fe                umemmove
+                0x0000000000019a50                umemset
+                0x0000000000019a74                upad
+                0x0000000000019a96                upadstr
+                0x0000000000019b33                usprint
+                0x0000000000019da8                ustr2int
+                0x0000000000019e1a                ustrcat
+                0x0000000000019e50                ustrcmp
+                0x0000000000019e86                ustrcpy
+                0x0000000000019eb0                ustrlen
+                0x0000000000019ed2                ubound
+                0x0000000000019ef6                ucvtdec
+                0x0000000000019f3d                ucvtdec0
+                0x0000000000019fc6                ucvthex
+                0x000000000001a050                ucvtoct
+                0x000000000001a0da                ucvtuns
+                0x000000000001a10c                ucvtuns0
+                0x000000000001a172                wait
+                0x000000000001a18a                spawn
+                0x000000000001a1ff                cwritech
+                0x000000000001a220                cwrites
+                0x000000000001a24a                cwrite
+                0x000000000001a265                swritech
+                0x000000000001a286                swrites
+                0x000000000001a2b0                swrite
                 [!provide]                        PROVIDE (etext = .)
                 [!provide]                        PROVIDE (_etext = .)
 
-.iplt           0x000000000001a2c8        0x0
- .iplt          0x000000000001a2c8        0x0 startup.o
+.iplt           0x000000000001a2d0        0x0
+ .iplt          0x000000000001a2d0        0x0 startup.o
 
 .rodata         0x000000000001a2e0     0x1c1d
  *(.rodata .rodata.* .gnu.linkonce.r.*)
@@ -426,7 +428,7 @@ LOAD userland.o
 LOAD ulibc.o
 OUTPUT(kernel elf32-i386)
 
-.debug_line     0x0000000000000000     0x29b5
+.debug_line     0x0000000000000000     0x29f1
  .debug_line    0x0000000000000000       0x52 startup.o
  .debug_line    0x0000000000000052      0x121 isrs.o
  .debug_line    0x0000000000000173      0x2ed cio.o
@@ -440,12 +442,12 @@ OUTPUT(kernel elf32-i386)
  .debug_line    0x000000000000133d      0x10f support.o
  .debug_line    0x000000000000144c      0x456 syscalls.o
  .debug_line    0x00000000000018a2       0xf3 user.o
- .debug_line    0x0000000000001995        0x0 intel_8255x.o
- .debug_line    0x0000000000001995       0x48 ulibs.o
- .debug_line    0x00000000000019dd      0xc4d userland.o
- .debug_line    0x000000000000262a      0x38b ulibc.o
+ .debug_line    0x0000000000001995       0x3c intel_8255x.o
+ .debug_line    0x00000000000019d1       0x48 ulibs.o
+ .debug_line    0x0000000000001a19      0xc4d userland.o
+ .debug_line    0x0000000000002666      0x38b ulibc.o
 
-.debug_info     0x0000000000000000     0x7b87
+.debug_info     0x0000000000000000     0x7bc9
  .debug_info    0x0000000000000000       0x26 startup.o
  .debug_info    0x0000000000000026       0x26 isrs.o
  .debug_info    0x000000000000004c      0xb1e cio.o
@@ -459,11 +461,12 @@ OUTPUT(kernel elf32-i386)
  .debug_info    0x0000000000004930      0x53a support.o
  .debug_info    0x0000000000004e6a      0xa2b syscalls.o
  .debug_info    0x0000000000005895      0x5f1 user.o
- .debug_info    0x0000000000005e86       0x26 ulibs.o
- .debug_info    0x0000000000005eac     0x13ad userland.o
- .debug_info    0x0000000000007259      0x92e ulibc.o
+ .debug_info    0x0000000000005e86       0x42 intel_8255x.o
+ .debug_info    0x0000000000005ec8       0x26 ulibs.o
+ .debug_info    0x0000000000005eee     0x13ad userland.o
+ .debug_info    0x000000000000729b      0x92e ulibc.o
 
-.debug_abbrev   0x0000000000000000     0x182e
+.debug_abbrev   0x0000000000000000     0x1867
  .debug_abbrev  0x0000000000000000       0x14 startup.o
  .debug_abbrev  0x0000000000000014       0x14 isrs.o
  .debug_abbrev  0x0000000000000028      0x2c9 cio.o
@@ -477,11 +480,12 @@ OUTPUT(kernel elf32-i386)
  .debug_abbrev  0x0000000000000fc3      0x1e1 support.o
  .debug_abbrev  0x00000000000011a4      0x21c syscalls.o
  .debug_abbrev  0x00000000000013c0      0x18a user.o
- .debug_abbrev  0x000000000000154a       0x14 ulibs.o
- .debug_abbrev  0x000000000000155e      0x1a8 userland.o
- .debug_abbrev  0x0000000000001706      0x128 ulibc.o
+ .debug_abbrev  0x000000000000154a       0x39 intel_8255x.o
+ .debug_abbrev  0x0000000000001583       0x14 ulibs.o
+ .debug_abbrev  0x0000000000001597      0x1a8 userland.o
+ .debug_abbrev  0x000000000000173f      0x128 ulibc.o
 
-.debug_aranges  0x0000000000000000      0x200
+.debug_aranges  0x0000000000000000      0x220
  .debug_aranges
                 0x0000000000000000       0x20 startup.o
  .debug_aranges
@@ -509,13 +513,15 @@ OUTPUT(kernel elf32-i386)
  .debug_aranges
                 0x0000000000000180       0x20 user.o
  .debug_aranges
-                0x00000000000001a0       0x20 ulibs.o
+                0x00000000000001a0       0x20 intel_8255x.o
  .debug_aranges
-                0x00000000000001c0       0x20 userland.o
+                0x00000000000001c0       0x20 ulibs.o
  .debug_aranges
-                0x00000000000001e0       0x20 ulibc.o
+                0x00000000000001e0       0x20 userland.o
+ .debug_aranges
+                0x0000000000000200       0x20 ulibc.o
 
-.debug_str      0x0000000000000000      0xf57
+.debug_str      0x0000000000000000      0xf6a
  .debug_str     0x0000000000000000       0x33 startup.o
  .debug_str     0x0000000000000033        0x7 isrs.o
                                          0x30 (size before relaxing)
@@ -541,13 +547,13 @@ OUTPUT(kernel elf32-i386)
                                         0x480 (size before relaxing)
  .debug_str     0x0000000000000c84       0x95 user.o
                                         0x3aa (size before relaxing)
- .debug_str     0x0000000000000d19        0xe intel_8255x.o
-                                         0x93 (size before relaxing)
- .debug_str     0x0000000000000d27        0x8 ulibs.o
+ .debug_str     0x0000000000000d19       0x21 intel_8255x.o
+                                         0xa6 (size before relaxing)
+ .debug_str     0x0000000000000d3a        0x8 ulibs.o
                                          0x31 (size before relaxing)
- .debug_str     0x0000000000000d2f      0x145 userland.o
+ .debug_str     0x0000000000000d42      0x145 userland.o
                                         0x2f1 (size before relaxing)
- .debug_str     0x0000000000000e74       0xe3 ulibc.o
+ .debug_str     0x0000000000000e87       0xe3 ulibc.o
                                         0x26d (size before relaxing)
 
 .debug_ranges   0x0000000000000000       0x78

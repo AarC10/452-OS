@@ -139,7 +139,7 @@ USER_OPTIONS = $(GEN_OPTIONS) $(DBG_OPTIONS) $(TRACE_OPTIONS) $(EXTRAS)
 #
 # We only want to include from the common header directory
 #
-INCLUDES = -I. -I./include -I./include/drivers
+INCLUDES = -I. -I./include 
 
 #
 # Compilation/assembly/linking commands and options
