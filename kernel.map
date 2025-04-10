@@ -65,6 +65,9 @@ Discarded input sections
  .note.GNU-stack
                 0x0000000000000000        0x0 user.o
  .eh_frame      0x0000000000000000       0x88 user.o
+ .comment       0x0000000000000000       0x2a intel_8255x.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 intel_8255x.o
  .comment       0x0000000000000000       0x2a userland.o
  .note.GNU-stack
                 0x0000000000000000        0x0 userland.o
@@ -207,6 +210,7 @@ Linker script and memory map
                 0x0000000000016a88                stack_setup
                 0x0000000000016d3c                user_init
                 0x0000000000016d55                user_cleanup
+ .text          0x0000000000016d7f        0x0 intel_8255x.o
  .text          0x0000000000016d7f       0x76 ulibs.o
                 0x0000000000016d7f                exit
                 0x0000000000016d87                waitpid
@@ -332,6 +336,7 @@ Linker script and memory map
  .data          0x000000000001c110        0x0 support.o
  .data          0x000000000001c110        0x0 syscalls.o
  .data          0x000000000001c110        0x0 user.o
+ .data          0x000000000001c110        0x0 intel_8255x.o
  .data          0x000000000001c110        0x0 ulibs.o
  *fill*         0x000000000001c110       0x10 
  .data          0x000000000001c120      0x51d userland.o
@@ -366,6 +371,7 @@ Linker script and memory map
  .bss           0x000000000001e1b1        0x0 support.o
  .bss           0x000000000001e1b1        0x0 syscalls.o
  .bss           0x000000000001e1b1        0x0 user.o
+ .bss           0x000000000001e1b1        0x0 intel_8255x.o
  .bss           0x000000000001e1b1        0x0 ulibs.o
  *fill*         0x000000000001e1b1        0x3 
  .bss           0x000000000001e1b4        0x8 userland.o
@@ -414,6 +420,7 @@ LOAD sio.o
 LOAD support.o
 LOAD syscalls.o
 LOAD user.o
+LOAD intel_8255x.o
 LOAD ulibs.o
 LOAD userland.o
 LOAD ulibc.o
@@ -433,6 +440,7 @@ OUTPUT(kernel elf32-i386)
  .debug_line    0x000000000000133d      0x10f support.o
  .debug_line    0x000000000000144c      0x456 syscalls.o
  .debug_line    0x00000000000018a2       0xf3 user.o
+ .debug_line    0x0000000000001995        0x0 intel_8255x.o
  .debug_line    0x0000000000001995       0x48 ulibs.o
  .debug_line    0x00000000000019dd      0xc4d userland.o
  .debug_line    0x000000000000262a      0x38b ulibc.o
@@ -507,7 +515,7 @@ OUTPUT(kernel elf32-i386)
  .debug_aranges
                 0x00000000000001e0       0x20 ulibc.o
 
-.debug_str      0x0000000000000000      0xf65
+.debug_str      0x0000000000000000      0xf57
  .debug_str     0x0000000000000000       0x33 startup.o
  .debug_str     0x0000000000000033        0x7 isrs.o
                                          0x30 (size before relaxing)
@@ -531,13 +539,15 @@ OUTPUT(kernel elf32-i386)
                                         0x240 (size before relaxing)
  .debug_str     0x0000000000000baa       0xda syscalls.o
                                         0x480 (size before relaxing)
- .debug_str     0x0000000000000c84       0xb1 user.o
-                                        0x3a9 (size before relaxing)
- .debug_str     0x0000000000000d35        0x8 ulibs.o
+ .debug_str     0x0000000000000c84       0x95 user.o
+                                        0x3aa (size before relaxing)
+ .debug_str     0x0000000000000d19        0xe intel_8255x.o
+                                         0x93 (size before relaxing)
+ .debug_str     0x0000000000000d27        0x8 ulibs.o
                                          0x31 (size before relaxing)
- .debug_str     0x0000000000000d3d      0x145 userland.o
-                                        0x2f0 (size before relaxing)
- .debug_str     0x0000000000000e82       0xe3 ulibc.o
+ .debug_str     0x0000000000000d2f      0x145 userland.o
+                                        0x2f1 (size before relaxing)
+ .debug_str     0x0000000000000e74       0xe3 ulibc.o
                                         0x26d (size before relaxing)
 
 .debug_ranges   0x0000000000000000       0x78
