@@ -62,3 +62,5 @@ int detect_intel_8255x() {
     }
   }
 }
+
+int intel_8255x_init(void) { return detect_intel_8255x(); }
