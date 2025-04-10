@@ -6,3 +6,5 @@ kernel.d
 kernel.map
 kernel.o
 kernel.sym
+user.o
+userland.o
