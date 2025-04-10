@@ -87,7 +87,7 @@ Linker script and memory map
 
                 0x0000000000010000                . = 0x10000
 
-.text           0x0000000000010000     0xa40d
+.text           0x0000000000010000     0xa46a
  *(.text .stub .text.* .gnu.linkonce.t.*)
  .text          0x0000000000010000       0x40 startup.o
                 0x0000000000010000                begtext
@@ -113,212 +113,214 @@ Linker script and memory map
                 0x00000000000117d6                cio_init
  .text          0x0000000000011862      0x2d3 clock.o
                 0x0000000000011a9f                clk_init
- .text          0x0000000000011b35      0x4fc kernel.o
+ .text          0x0000000000011b35      0x521 kernel.o
                 0x0000000000011d4b                main
- .text          0x0000000000012031      0xa50 klibc.o
-                0x0000000000012031                blkmov
-                0x00000000000120cb                bound
-                0x00000000000120ef                cvtdec
-                0x0000000000012136                cvtdec0
-                0x00000000000121bf                cvthex
-                0x0000000000012249                cvtoct
-                0x00000000000122d3                cvtuns
-                0x0000000000012305                cvtuns0
-                0x000000000001236b                put_char_or_code
-                0x00000000000123a4                backtrace
-                0x0000000000012462                kpanic
-                0x000000000001255f                memclr
-                0x0000000000012580                memcpy
-                0x00000000000125ad                memmove
-                0x00000000000125ff                memset
-                0x0000000000012623                pad
-                0x0000000000012645                padstr
-                0x00000000000126e2                sprint
-                0x0000000000012957                str2int
-                0x00000000000129c9                strcat
-                0x00000000000129ff                strcmp
-                0x0000000000012a35                strcpy
-                0x0000000000012a5f                strlen
- .text          0x0000000000012a81      0x7ef kmem.o
-                0x0000000000012b8b                km_init
-                0x0000000000012d65                km_dump
-                0x0000000000012e2d                km_page_alloc
-                0x0000000000012f32                km_page_free
-                0x0000000000012f53                km_page_free_multi
-                0x0000000000013122                km_slice_alloc
-                0x00000000000131f3                km_slice_free
- .text          0x0000000000013270      0x107 list.o
-                0x0000000000013270                list_add
-                0x000000000001330d                list_remove
- .text          0x0000000000013377     0x1737 procs.o
-                0x00000000000135c0                pcb_init
-                0x0000000000013841                pcb_alloc
-                0x00000000000138b7                pcb_free
-                0x0000000000013941                pcb_stack_alloc
-                0x0000000000013985                pcb_stack_free
-                0x00000000000139ed                pcb_zombify
-                0x0000000000013c81                pcb_cleanup
-                0x0000000000013cae                pcb_find_pid
-                0x0000000000013d00                pcb_find_ppid
-                0x0000000000013da0                pcb_queue_reset
-                0x0000000000013e19                pcb_queue_empty
-                0x0000000000013e6c                pcb_queue_length
-                0x0000000000013ed1                pcb_queue_insert
-                0x00000000000140b7                pcb_queue_remove
-                0x000000000001418e                pcb_queue_remove_this
-                0x000000000001434c                pcb_queue_peek
-                0x00000000000143aa                schedule
-                0x000000000001446b                dispatch
-                0x0000000000014542                ctx_dump
-                0x0000000000014634                ctx_dump_all
-                0x00000000000146a9                pcb_dump
-                0x00000000000147e8                pcb_queue_dump
-                0x00000000000148fb                ptable_dump
-                0x00000000000149e6                ptable_dump_counts
- .text          0x0000000000014aae      0xa0b sio.o
-                0x0000000000014dd4                sio_init
-                0x0000000000014f47                sio_enable
-                0x0000000000014fbf                sio_disable
-                0x0000000000015037                sio_flush
-                0x00000000000150ed                sio_inq_length
-                0x00000000000150f7                sio_readc
-                0x0000000000015158                sio_read
-                0x00000000000151f3                sio_writec
-                0x0000000000015268                sio_write
-                0x000000000001530f                sio_puts
-                0x000000000001533c                sio_dump
- .text          0x00000000000154b9      0x2f8 support.o
-                0x0000000000015732                panic
-                0x000000000001574e                init_interrupts
-                0x0000000000015761                install_isr
-                0x0000000000015786                delay
- .text          0x00000000000157b1     0x12d7 syscalls.o
-                0x00000000000157b1                sys_exit
-                0x0000000000015870                sys_waitpid
-                0x0000000000015b79                sys_fork
-                0x0000000000015de5                sys_exec
-                0x0000000000015f74                sys_read
-                0x0000000000016165                sys_write
-                0x000000000001626f                sys_getpid
-                0x00000000000162ec                sys_getppid
-                0x00000000000163b1                sys_gettime
-                0x000000000001642e                sys_getprio
-                0x00000000000164ab                sys_setprio
-                0x0000000000016541                sys_kill
-                0x0000000000016834                sys_sleep
-                0x0000000000016a5a                sys_init
- .text          0x0000000000016a88      0x2f7 user.o
-                0x0000000000016a88                stack_setup
-                0x0000000000016d3c                user_init
-                0x0000000000016d55                user_cleanup
- .text          0x0000000000016d7f      0x14c intel_8255x.o
-                0x0000000000016dd9                detect_intel_8255x
-                0x0000000000016ec1                intel_8255x_init
- .text          0x0000000000016ecb       0x76 ulibs.o
-                0x0000000000016ecb                exit
-                0x0000000000016ed3                waitpid
-                0x0000000000016edb                fork
-                0x0000000000016ee3                exec
-                0x0000000000016eeb                read
-                0x0000000000016ef3                write
-                0x0000000000016efb                getpid
-                0x0000000000016f03                getppid
-                0x0000000000016f0b                gettime
-                0x0000000000016f13                getprio
-                0x0000000000016f1b                setprio
-                0x0000000000016f23                kill
-                0x0000000000016f2b                sleep
-                0x0000000000016f33                bogus
-                0x0000000000016f3b                fake_exit
- .text          0x0000000000016f41     0x2b17 userland.o
-                0x0000000000016f41                idle
-                0x0000000000017182                shell
-                0x0000000000017485                init
-                0x00000000000176aa                progABC
-                0x00000000000178e5                progDE
-                0x0000000000017ab2                progFG
-                0x0000000000017c97                progH
-                0x0000000000017e7d                progZ
-                0x0000000000018044                progI
-                0x00000000000183b7                progW
-                0x00000000000185c2                progJ
-                0x000000000001877d                progY
-                0x0000000000018921                progKL
-                0x0000000000018b10                progX
-                0x0000000000018ca4                progMN
-                0x0000000000018f0c                progP
-                0x00000000000190c5                progQ
-                0x000000000001920a                progR
-                0x000000000001945f                progS
-                0x00000000000195e2                progTUV
- .text          0x0000000000019a58      0x9b5 ulibc.o
-                0x0000000000019a58                ublkmov
-                0x0000000000019af2                umemclr
-                0x0000000000019b13                umemcpy
-                0x0000000000019b40                umemmove
-                0x0000000000019b92                umemset
-                0x0000000000019bb6                upad
-                0x0000000000019bd8                upadstr
-                0x0000000000019c75                usprint
-                0x0000000000019eea                ustr2int
-                0x0000000000019f5c                ustrcat
-                0x0000000000019f92                ustrcmp
-                0x0000000000019fc8                ustrcpy
-                0x0000000000019ff2                ustrlen
-                0x000000000001a014                ubound
-                0x000000000001a038                ucvtdec
-                0x000000000001a07f                ucvtdec0
-                0x000000000001a108                ucvthex
-                0x000000000001a192                ucvtoct
-                0x000000000001a21c                ucvtuns
-                0x000000000001a24e                ucvtuns0
-                0x000000000001a2b4                wait
-                0x000000000001a2cc                spawn
-                0x000000000001a341                cwritech
-                0x000000000001a362                cwrites
-                0x000000000001a38c                cwrite
-                0x000000000001a3a7                swritech
-                0x000000000001a3c8                swrites
-                0x000000000001a3f2                swrite
+ .text          0x0000000000012056      0xa50 klibc.o
+                0x0000000000012056                blkmov
+                0x00000000000120f0                bound
+                0x0000000000012114                cvtdec
+                0x000000000001215b                cvtdec0
+                0x00000000000121e4                cvthex
+                0x000000000001226e                cvtoct
+                0x00000000000122f8                cvtuns
+                0x000000000001232a                cvtuns0
+                0x0000000000012390                put_char_or_code
+                0x00000000000123c9                backtrace
+                0x0000000000012487                kpanic
+                0x0000000000012584                memclr
+                0x00000000000125a5                memcpy
+                0x00000000000125d2                memmove
+                0x0000000000012624                memset
+                0x0000000000012648                pad
+                0x000000000001266a                padstr
+                0x0000000000012707                sprint
+                0x000000000001297c                str2int
+                0x00000000000129ee                strcat
+                0x0000000000012a24                strcmp
+                0x0000000000012a5a                strcpy
+                0x0000000000012a84                strlen
+ .text          0x0000000000012aa6      0x7ef kmem.o
+                0x0000000000012bb0                km_init
+                0x0000000000012d8a                km_dump
+                0x0000000000012e52                km_page_alloc
+                0x0000000000012f57                km_page_free
+                0x0000000000012f78                km_page_free_multi
+                0x0000000000013147                km_slice_alloc
+                0x0000000000013218                km_slice_free
+ .text          0x0000000000013295      0x107 list.o
+                0x0000000000013295                list_add
+                0x0000000000013332                list_remove
+ .text          0x000000000001339c     0x1737 procs.o
+                0x00000000000135e5                pcb_init
+                0x0000000000013866                pcb_alloc
+                0x00000000000138dc                pcb_free
+                0x0000000000013966                pcb_stack_alloc
+                0x00000000000139aa                pcb_stack_free
+                0x0000000000013a12                pcb_zombify
+                0x0000000000013ca6                pcb_cleanup
+                0x0000000000013cd3                pcb_find_pid
+                0x0000000000013d25                pcb_find_ppid
+                0x0000000000013dc5                pcb_queue_reset
+                0x0000000000013e3e                pcb_queue_empty
+                0x0000000000013e91                pcb_queue_length
+                0x0000000000013ef6                pcb_queue_insert
+                0x00000000000140dc                pcb_queue_remove
+                0x00000000000141b3                pcb_queue_remove_this
+                0x0000000000014371                pcb_queue_peek
+                0x00000000000143cf                schedule
+                0x0000000000014490                dispatch
+                0x0000000000014567                ctx_dump
+                0x0000000000014659                ctx_dump_all
+                0x00000000000146ce                pcb_dump
+                0x000000000001480d                pcb_queue_dump
+                0x0000000000014920                ptable_dump
+                0x0000000000014a0b                ptable_dump_counts
+ .text          0x0000000000014ad3      0xa0b sio.o
+                0x0000000000014df9                sio_init
+                0x0000000000014f6c                sio_enable
+                0x0000000000014fe4                sio_disable
+                0x000000000001505c                sio_flush
+                0x0000000000015112                sio_inq_length
+                0x000000000001511c                sio_readc
+                0x000000000001517d                sio_read
+                0x0000000000015218                sio_writec
+                0x000000000001528d                sio_write
+                0x0000000000015334                sio_puts
+                0x0000000000015361                sio_dump
+ .text          0x00000000000154de      0x2f8 support.o
+                0x0000000000015757                panic
+                0x0000000000015773                init_interrupts
+                0x0000000000015786                install_isr
+                0x00000000000157ab                delay
+ .text          0x00000000000157d6     0x12d7 syscalls.o
+                0x00000000000157d6                sys_exit
+                0x0000000000015895                sys_waitpid
+                0x0000000000015b9e                sys_fork
+                0x0000000000015e0a                sys_exec
+                0x0000000000015f99                sys_read
+                0x000000000001618a                sys_write
+                0x0000000000016294                sys_getpid
+                0x0000000000016311                sys_getppid
+                0x00000000000163d6                sys_gettime
+                0x0000000000016453                sys_getprio
+                0x00000000000164d0                sys_setprio
+                0x0000000000016566                sys_kill
+                0x0000000000016859                sys_sleep
+                0x0000000000016a7f                sys_init
+ .text          0x0000000000016aad      0x2f7 user.o
+                0x0000000000016aad                stack_setup
+                0x0000000000016d61                user_init
+                0x0000000000016d7a                user_cleanup
+ .text          0x0000000000016da4      0x184 intel_8255x.o
+                0x0000000000016dfe                detect_intel_8255x
+                0x0000000000016f1b                intel_8255x_init
+ .text          0x0000000000016f28       0x76 ulibs.o
+                0x0000000000016f28                exit
+                0x0000000000016f30                waitpid
+                0x0000000000016f38                fork
+                0x0000000000016f40                exec
+                0x0000000000016f48                read
+                0x0000000000016f50                write
+                0x0000000000016f58                getpid
+                0x0000000000016f60                getppid
+                0x0000000000016f68                gettime
+                0x0000000000016f70                getprio
+                0x0000000000016f78                setprio
+                0x0000000000016f80                kill
+                0x0000000000016f88                sleep
+                0x0000000000016f90                bogus
+                0x0000000000016f98                fake_exit
+ .text          0x0000000000016f9e     0x2b17 userland.o
+                0x0000000000016f9e                idle
+                0x00000000000171df                shell
+                0x00000000000174e2                init
+                0x0000000000017707                progABC
+                0x0000000000017942                progDE
+                0x0000000000017b0f                progFG
+                0x0000000000017cf4                progH
+                0x0000000000017eda                progZ
+                0x00000000000180a1                progI
+                0x0000000000018414                progW
+                0x000000000001861f                progJ
+                0x00000000000187da                progY
+                0x000000000001897e                progKL
+                0x0000000000018b6d                progX
+                0x0000000000018d01                progMN
+                0x0000000000018f69                progP
+                0x0000000000019122                progQ
+                0x0000000000019267                progR
+                0x00000000000194bc                progS
+                0x000000000001963f                progTUV
+ .text          0x0000000000019ab5      0x9b5 ulibc.o
+                0x0000000000019ab5                ublkmov
+                0x0000000000019b4f                umemclr
+                0x0000000000019b70                umemcpy
+                0x0000000000019b9d                umemmove
+                0x0000000000019bef                umemset
+                0x0000000000019c13                upad
+                0x0000000000019c35                upadstr
+                0x0000000000019cd2                usprint
+                0x0000000000019f47                ustr2int
+                0x0000000000019fb9                ustrcat
+                0x0000000000019fef                ustrcmp
+                0x000000000001a025                ustrcpy
+                0x000000000001a04f                ustrlen
+                0x000000000001a071                ubound
+                0x000000000001a095                ucvtdec
+                0x000000000001a0dc                ucvtdec0
+                0x000000000001a165                ucvthex
+                0x000000000001a1ef                ucvtoct
+                0x000000000001a279                ucvtuns
+                0x000000000001a2ab                ucvtuns0
+                0x000000000001a311                wait
+                0x000000000001a329                spawn
+                0x000000000001a39e                cwritech
+                0x000000000001a3bf                cwrites
+                0x000000000001a3e9                cwrite
+                0x000000000001a404                swritech
+                0x000000000001a425                swrites
+                0x000000000001a44f                swrite
                 [!provide]                        PROVIDE (etext = .)
                 [!provide]                        PROVIDE (_etext = .)
 
-.iplt           0x000000000001a410        0x0
- .iplt          0x000000000001a410        0x0 startup.o
+.iplt           0x000000000001a470        0x0
+ .iplt          0x000000000001a470        0x0 startup.o
 
-.rodata         0x000000000001a420     0x1c1d
+.rodata         0x000000000001a480     0x1cbd
  *(.rodata .rodata.* .gnu.linkonce.r.*)
- .rodata        0x000000000001a420      0x4b6 isrs.o
-                0x000000000001a4d6                isr_stub_table
- *fill*         0x000000000001a8d6        0x2 
- .rodata        0x000000000001a8d8       0x58 cio.o
- .rodata        0x000000000001a930       0x90 clock.o
- .rodata        0x000000000001a9c0      0x3a5 kernel.o
- *fill*         0x000000000001ad65        0x3 
- .rodata        0x000000000001ad68       0xe8 klibc.o
- .rodata        0x000000000001ae50      0x15a kmem.o
- *fill*         0x000000000001afaa        0x2 
- .rodata        0x000000000001afac       0x4c list.o
- *fill*         0x000000000001aff8        0x8 
- .rodata        0x000000000001b000      0x5d5 procs.o
-                0x000000000001b000                state_str
-                0x000000000001b024                prio_str
-                0x000000000001b038                ord_str
- *fill*         0x000000000001b5d5        0x3 
- .rodata        0x000000000001b5d8      0x15c sio.o
- .rodata        0x000000000001b734       0xb6 support.o
- *fill*         0x000000000001b7ea       0x16 
- .rodata        0x000000000001b800      0x260 syscalls.o
- .rodata        0x000000000001ba60        0x6 user.o
- *fill*         0x000000000001ba66        0x2 
- .rodata        0x000000000001ba68      0x560 userland.o
- .rodata        0x000000000001bfc8       0x75 ulibc.o
+ .rodata        0x000000000001a480      0x4b6 isrs.o
+                0x000000000001a536                isr_stub_table
+ *fill*         0x000000000001a936        0x2 
+ .rodata        0x000000000001a938       0x58 cio.o
+ .rodata        0x000000000001a990       0x90 clock.o
+ .rodata        0x000000000001aa20      0x3d5 kernel.o
+ *fill*         0x000000000001adf5        0x3 
+ .rodata        0x000000000001adf8       0xe8 klibc.o
+ .rodata        0x000000000001aee0      0x15a kmem.o
+ *fill*         0x000000000001b03a        0x2 
+ .rodata        0x000000000001b03c       0x4c list.o
+ *fill*         0x000000000001b088       0x18 
+ .rodata        0x000000000001b0a0      0x5d5 procs.o
+                0x000000000001b0a0                state_str
+                0x000000000001b0c4                prio_str
+                0x000000000001b0d8                ord_str
+ *fill*         0x000000000001b675        0x3 
+ .rodata        0x000000000001b678      0x15c sio.o
+ .rodata        0x000000000001b7d4       0xb6 support.o
+ *fill*         0x000000000001b88a       0x16 
+ .rodata        0x000000000001b8a0      0x260 syscalls.o
+ .rodata        0x000000000001bb00        0x6 user.o
+ *fill*         0x000000000001bb06        0x2 
+ .rodata        0x000000000001bb08       0x5d intel_8255x.o
+ *fill*         0x000000000001bb65        0x3 
+ .rodata        0x000000000001bb68      0x560 userland.o
+ .rodata        0x000000000001c0c8       0x75 ulibc.o
 
-.rel.dyn        0x000000000001c040        0x0
- .rel.got       0x000000000001c040        0x0 startup.o
- .rel.iplt      0x000000000001c040        0x0 startup.o
- .rel.text      0x000000000001c040        0x0 startup.o
- .rel.data      0x000000000001c040        0x0 startup.o
+.rel.dyn        0x000000000001c140        0x0
+ .rel.got       0x000000000001c140        0x0 startup.o
+ .rel.iplt      0x000000000001c140        0x0 startup.o
+ .rel.text      0x000000000001c140        0x0 startup.o
+ .rel.data      0x000000000001c140        0x0 startup.o
                 0x000000000001d000                . = ALIGN (0x1000)
                 [!provide]                        PROVIDE (data = .)
                 [!provide]                        PROVIDE (_data = .)
@@ -429,24 +431,24 @@ LOAD userland.o
 LOAD ulibc.o
 OUTPUT(kernel elf32-i386)
 
-.debug_line     0x0000000000000000     0x2a85
+.debug_line     0x0000000000000000     0x2a8f
  .debug_line    0x0000000000000000       0x52 startup.o
  .debug_line    0x0000000000000052      0x121 isrs.o
  .debug_line    0x0000000000000173      0x2ed cio.o
  .debug_line    0x0000000000000460      0x109 clock.o
- .debug_line    0x0000000000000569      0x117 kernel.o
- .debug_line    0x0000000000000680      0x2af klibc.o
- .debug_line    0x000000000000092f      0x215 kmem.o
- .debug_line    0x0000000000000b44       0x8b list.o
- .debug_line    0x0000000000000bcf      0x4c0 procs.o
- .debug_line    0x000000000000108f      0x2ae sio.o
- .debug_line    0x000000000000133d      0x10f support.o
- .debug_line    0x000000000000144c      0x456 syscalls.o
- .debug_line    0x00000000000018a2       0xf3 user.o
- .debug_line    0x0000000000001995       0xd0 intel_8255x.o
- .debug_line    0x0000000000001a65       0x48 ulibs.o
- .debug_line    0x0000000000001aad      0xc4d userland.o
- .debug_line    0x00000000000026fa      0x38b ulibc.o
+ .debug_line    0x0000000000000569      0x11c kernel.o
+ .debug_line    0x0000000000000685      0x2af klibc.o
+ .debug_line    0x0000000000000934      0x215 kmem.o
+ .debug_line    0x0000000000000b49       0x8b list.o
+ .debug_line    0x0000000000000bd4      0x4c0 procs.o
+ .debug_line    0x0000000000001094      0x2ae sio.o
+ .debug_line    0x0000000000001342      0x10f support.o
+ .debug_line    0x0000000000001451      0x456 syscalls.o
+ .debug_line    0x00000000000018a7       0xf3 user.o
+ .debug_line    0x000000000000199a       0xd5 intel_8255x.o
+ .debug_line    0x0000000000001a6f       0x48 ulibs.o
+ .debug_line    0x0000000000001ab7      0xc4d userland.o
+ .debug_line    0x0000000000002704      0x38b ulibc.o
 
 .debug_info     0x0000000000000000     0x7dc8
  .debug_info    0x0000000000000000       0x26 startup.o
