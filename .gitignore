@@ -1,0 +1,8 @@
+disk.img
+kernel
+kernel.asm
+kernel.b
+kernel.d 
+kernel.map
+kernel.o
+kernel.sym
