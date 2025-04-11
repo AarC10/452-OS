@@ -327,7 +327,6 @@ int main( void ) {
 
 
   intel_8255x_init();
-  cio_puts("Waiting 5 secondsd before starting user procs");
   delay(DELAY_5_SEC);
 	/*
 	** Create the initial user process
