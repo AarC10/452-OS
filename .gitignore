@@ -11,5 +11,8 @@
 *.nll
 *.nl
 kernel
-kernel.img
 BuildImage
+*.d 
+*.img
+*FLAGS 
+Offsets

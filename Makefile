@@ -189,7 +189,7 @@ HEXDUMP = hexdump
 
 # Location of the QEMU binary
 #
-QEMU = /home/course/csci352/bin/qemu-system-i386
+QEMU = qemu-system-i386
 
 # try to generate a unique GDB port
 GDBPORT = $(shell expr `id -u` % 5000 + 25000)
