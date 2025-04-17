@@ -124,7 +124,8 @@ static proc_t sh_spawn_table[] = {
 #endif
 	
 	// a dummy entry to use as a sentinel
-	{ TBLEND }
+	// { TBLEND }
+	{ 0 }	// all fields are zeroes, including 'valid'
 
 	// these processes are spawned by the ones above, and are never
 	// spawned directly.
@@ -135,17 +136,20 @@ static proc_t sh_spawn_table[] = {
 	// PROCENT( progZ, PRIO_STD, "?", "userZ", "Z", "10" )
 };
 
+// static int sh_spawn_len = sizeof(sh_spawn_table) / sizeof(sh_spawn_table[0]);
+
 /*
 ** usage function
 */
 static void usage( void ) {
 	swrites( "\nTests - run with '@x', where 'x' is one or more of:\n " );
 	proc_t *p = sh_spawn_table;
-	while( p->entry != TBLEND ) {
+	while( p->valid ) {
 		swritech( ' ' );
 		swritech( p->select[0] );
+		++p;
 	}
-	swrites( "\nOther commands: @* (all), @h (help), @x (exit)\n" );
+	swrites( "\nOther commands: @* (all), @h (help), @x (exit), @@ (dump)\n" );
 }
 
 /*
@@ -154,32 +158,57 @@ static void usage( void ) {
 static int run( char which ) {
 	char buf[128];
 	register proc_t *p;
+	char lwhich = LCASE(which);
 
-	if( which == 'h' ) {
+	if( lwhich == 'h' ) {
 
 		// builtin "help" command
 		usage();
 
-	} else if( which == 'x' ) {
+	} else if( lwhich == '@' ) {
+
+		cwrites( "Shell command table:\n" );
+		p = sh_spawn_table;
+		int i = 0;
+		while( p->valid ) {
+			usprint( buf, " %2d: 0x%08x '%s' pr %d %s pid %d",
+					i, p->entry, p->select, p->prio,
+					p->valid ? "V" : "!V", p->pid );
+			cwrites( buf );
+			int j = 0;
+			while( j < N_ARGS && p->args[j] != NULL ) {
+				usprint( buf, " %s", p->args[j] );
+				cwrites( buf );
+				++j;
+			}
+			cwrites( "\n" );
+			++p;
+			++i;
+		}
+
+	} else if( lwhich == 'x' ) {
 
 		// builtin "exit" command
 		time_to_stop = true;
 
-	} else if( which == '*' ) {
+	} else if( lwhich == '*' ) {
 
 		// torture test! run everything!
-		for( p = sh_spawn_table; p->entry != TBLEND; ++p ) {
+		p = sh_spawn_table;
+		while( p->valid ) {
 			int status = spawn( p->entry, p->args );
 			if( status > 0 ) {
 				++children;
 			}
+			++p;
 		}
 
 	} else {
 
 		// must be a single test; find and run it
-		for( p = sh_spawn_table; p->entry != TBLEND; ++p ) {
-			if( p->select[0] == which ) {
+		p = sh_spawn_table;
+		while( p->valid ) {
+			if( LCASE(p->select[0]) == lwhich ) {
 				// found it!
 				int status = spawn( p->entry, p->args );
 				if( status > 0 ) {
@@ -187,6 +216,7 @@ static int run( char which ) {
 				}
 				return status;
 			}
+			++p;
 		}
 
 		// uh-oh, made it through the table without finding the program
@@ -214,6 +244,7 @@ static int edit( char line[], int n ) {
 		} else {
 			break;
 		}
+		--ptr;
 	}
 
 	// add a trailing NUL byte
@@ -222,6 +253,72 @@ static int edit( char line[], int n ) {
 	}
 
 	return n;
+}
+
+/**
+** readline - read an entire line of input from the SIO
+**
+** Reads character-by-character until a newline is read, then
+** NUL-terminates the buffer.
+**
+** @param buf  Buffer to hold the line
+** @param len  Size of the buffer (bytes)
+**
+** @return the number of bytes placed into the buffer, or -1 on error
+*/
+static int readline( char *buf, uint32_t len ) {
+
+	// sanity check
+	if( buf == NULL ) {
+		return -1;
+	}
+
+	// need room for at least one character plus a NUL
+	if( len < 2 ) {
+		return 0;
+	}
+
+	// leave room for the NUL
+	len -= 1;
+
+	// read incrementally until we find the newline
+	char *ptr = buf;
+	int num = 0;
+	while( len > 0 ) {
+
+		// can accept up to 'len' more characters
+		int n = read( CHAN_SIO, ptr, len );
+
+		if( n < 0 ) {
+			// problem!
+			break;
+		} else if( n == 0 ) {
+			// pause for a bit
+			sleep( SEC_TO_MS(1) );
+			continue;
+		}
+
+		// reduce the remaining buffer size
+		len -= n;
+
+		// add these characters to our input total
+		num += n;
+
+		// find the newline
+		while( n-- > 0 ) {
+			if( *ptr++ == '\n' ) {
+				// found it - reset 'len' so that we
+				// also get out of the outer loop
+				len = 0;
+				break;
+			}
+		}
+	}
+
+	// NUL-terminate it
+	*ptr = '\0';
+
+	return num;
 }
 
 /**
@@ -251,8 +348,10 @@ USERMAIN( shell ) {
 		// the shell reads one line from the keyboard, parses it,
 		// and performs whatever command it requests.
 
+		umemclr( (void *)line, sizeof(line) );
+
 		swrites( "\n> " );
-		int n = read( CHAN_SIO, line, sizeof(line) );
+		int n = readline( line, sizeof(line) );
 		
 		// shortest valid command is "@?", so must have 3+ chars here
 		if( n < 3 ) {
@@ -308,13 +407,15 @@ USERMAIN( shell ) {
 					break;
 				} else if( whom < 1 ) {
 					usprint( buf, "%s: waitpid() returned %d\n", name, whom );
+					swrites( buf );
 				} else {
 					--children;
-					usprint( buf, "%s: PID %d exit status %d\n",
-							name, whom, status );
+					if( status != 0 ) {
+						usprint( buf, "%s: PID %d exit status %d\n",
+								name, whom, status );
+						swrites( buf );
+					}
 				}
-				// report it
-				swrites( buf );
 			}
 		}  // if i < n
 	}  // while

@@ -20,10 +20,11 @@
 */
 typedef struct proc_s {
     uint32_t entry;       // process entry point
+    char select[2];       // identifying character, NUL
+    uint8_t prio;         // process priority
+	uint8_t valid;        // is this entry valid?
     uint_t pid;           // its PID (when spawned)
-    uint8_t e_prio;       // process priority
-    char select[3];       // identifying character, NUL, extra
-    char *args[N_ARGS];   // argument vector strings
+    char *args[N_ARGS+1]; // argument vector strings, plus a NULL
 } proc_t;
 
 /*
@@ -31,7 +32,7 @@ typedef struct proc_s {
 ** as its argument buffer.  We rely on the fact that the C standard
 ** ensures our array of pointers will be filled out with NULLs
 */
-#define PROCENT(e,p,s,...) { (uint32_t) e, 0, p, s, { __VA_ARGS__ , NULL } }
+#define PROCENT(e,p,s,...) { (uint32_t)e, s, p, 1, 0, { __VA_ARGS__ , NULL} }
 
 // sentinel value for the end of the table - must be a value that
 // will never occur as the actual entry point of a function

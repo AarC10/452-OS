@@ -44,6 +44,7 @@ SECTIONS
 
 	PROVIDE(data = .);
 	PROVIDE(_data = .);
+	PROVIDE(__data_start = .);
 
 	/* The data segment */
 	.data : {
@@ -52,6 +53,7 @@ SECTIONS
 
 	PROVIDE(edata = .);
 	PROVIDE(_edata = .);
+	PROVIDE(__data_end = .);
 
 	/* page-align the BSS */
 	. = ALIGN(0x1000);

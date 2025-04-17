@@ -85,6 +85,8 @@ USERMAIN(progO);   USERMAIN(progP);   USERMAIN(progQ);  USERMAIN(progR);
 USERMAIN(progS);   USERMAIN(progTUV); USERMAIN(progW);  USERMAIN(progX);
 USERMAIN(progY);   USERMAIN(progZ);
 
+#endif /* !ASM_SRC */
+
 /*
 ** User process controls.
 **
@@ -132,7 +134,5 @@ USERMAIN(progY);   USERMAIN(progZ);
 #define SPAWN_T
 #define SPAWN_U
 #define SPAWN_V
-
-#endif /* !ASM_SRC */
 
 #endif

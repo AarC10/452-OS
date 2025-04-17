@@ -17,19 +17,22 @@
 ** started by 'init'. Typically, this includes the 'idle' process
 ** and a 'shell' process.
 */
-static proc_t init_spawn_table[] = {
+static proc_t in_spawn_table[] = {
 
 	// the idle process; it runs at Deferred priority,
 	// so it will only be dispatched when there is
 	// nothing else available to be dispatched
-	PROCENT( idle, PRIO_DEFERRED, "!", "idle", "." ),
+	PROCENT( idle, PRIO_DEFERRED, ".", "idle", "." ),
 
 	// the user shell
-	PROCENT( idle, PRIO_STD, "@", "shell" ),
+	PROCENT( shell, PRIO_STD, "@", "shell" ),
 
-	// PROCENT( 0, 0, 0, 0 )
-	{ TBLEND }
+	// a dummy entry to use as a sentinel
+	// { TBLEND }
+	{ 0 }	// all fields are zeroes, including 'valid'
 };
+
+// static int in_spawn_len = sizeof(in_spawn_table) / sizeof(in_spawn_table[0]);
 
 // character to be printed by 'init'
 static char ch = '+';
@@ -54,9 +57,14 @@ static void process( proc_t *proc )
 		cwrites( buf );
 
 	} else if( p == 0 ) {
+		
+		// current priority
+		uint_t cprio = getprio();
 
-		// change child's priority
-		(void) setprio( proc->e_prio );
+		// change child's priority if we need to
+		if( cprio != proc->prio ) {
+			(void) setprio( proc->prio );
+		}
 
 		// now, send it on its way
 		exec( proc->entry, proc->args );
@@ -69,7 +77,9 @@ static void process( proc_t *proc )
 	} else {
 
 		// parent just reports that another one was started
-		swritech( ch );
+		// swritech( ch );
+		usprint( buf, "%c%c%c", ch, proc->select[0], ch );
+		swrites( buf );
 
 		proc->pid = p;
 
@@ -96,7 +106,6 @@ USERMAIN( init ) {
 
 	// test the sio
 	write( CHAN_SIO, "$+$\n", 4 );
-	DELAY(SHORT);
 
 	usprint( buf, "%s: started\n", name );
 	cwrites( buf );
@@ -108,18 +117,19 @@ USERMAIN( init ) {
 	DELAY(SHORT);
 
 	// a bit of Dante to set the mood :-)
-	swrites( "\n\nSpem relinquunt qui huc intrasti!\n\n\r" );
+	swrites( "\nSpem relinquunt qui huc intrasti!\n" );
 
 	/*
 	** Start all the user processes
 	*/
 
-	usprint( buf, "%s: starting user processes\n", name );
+	usprint( buf, "%s: starting user processes\n!!! ", name );
 	cwrites( buf );
 
-	proc_t *next;
-	for( next = init_spawn_table; next->entry != TBLEND; ++next ) {
+	proc_t *next = in_spawn_table;
+	while( next->valid ) {
 		process( next );
+		++next;
 	}
 
 	swrites( " !!!\r\n\n" );
@@ -149,7 +159,8 @@ USERMAIN( init ) {
 			cwrites( buf );
 
 			// figure out if this is one of ours
-			for( next = init_spawn_table; next->entry != TBLEND; ++next ) {
+			next = in_spawn_table;
+			while( next->valid ) {
 				if( next->pid == whom ) {
 					// one of ours - reset the PID field
 					// (in case the spawn attempt fails)
@@ -158,6 +169,7 @@ USERMAIN( init ) {
 					process( next );
 					break;
 				}
+				++next;
 			}
 		}
 	}

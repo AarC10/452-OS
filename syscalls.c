@@ -470,32 +470,48 @@ SYSIMPL(read) {
 	if( chan == CHAN_CIO ) {
 
 		// console input is non-blocking
-		if( cio_input_queue() < 1 ) {
-			RET(pcb) = 0;
-			SYSCALL_EXIT( 0 );
-			return;
+		if( cio_input_queue() > 1 ) {
+			// at least one character
+			n = cio_gets( buf, len );
 		}
-		// at least one character
-		n = cio_gets( buf, len );
 		RET(pcb) = n;
 		SYSCALL_EXIT( n );
 		return;
 
-	} else if( chan == CHAN_SIO ) {
+	} else if( chan != CHAN_SIO ) {
 
-		// SIO input is blocking, so if there are no characters
-		// available, we'll block this process
-		n = sio_read( buf, len );
-		RET(pcb) = n;
-		SYSCALL_EXIT( n );
+		// bad channel code
+		RET(pcb) = E_BAD_PARAM;
+		SYSCALL_EXIT( E_BAD_PARAM );
 		return;
 
 	}
 
-	// bad channel code
-	RET(pcb) = E_BAD_PARAM;
-	SYSCALL_EXIT( E_BAD_PARAM );
-	return;
+	// must be SIO.
+
+	// SIO input is blocking, so if there are no characters
+	// available, we'll block this process
+
+	if( sio_inq_length() < 1 ) {
+
+		// no characters, so block this process
+		pcb->state = STATE_BLOCKED;
+		assert1( pcb_queue_insert(sioread,pcb) == SUCCESS );
+
+		// select the next process to run
+		current = NULL;
+		dispatch();
+
+		SYSCALL_EXIT( 0 );
+
+		return;
+	}
+
+	// at least one character, so we'll return whatever is there
+	n = sio_read( buf, len );
+
+	RET(pcb) = n;
+	SYSCALL_EXIT( n );
 }
 
 /**
@@ -738,7 +754,7 @@ SYSIMPL(kill) {
 		// catch that earlier.
 		sprint( b256, "*** kill(): victim %d, odd state %d\n",
 				victim->pid, victim->state );
-		PANIC( 0, b256 );
+		kpanic( b256 );
 	}
 
 	SYSCALL_EXIT( status );

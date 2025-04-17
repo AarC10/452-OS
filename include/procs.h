@@ -52,6 +52,26 @@ enum state_e {
 */
 
 /*
+** Debugging modes for ptable_dump()
+*/
+#define	DMODE_ACTIVE_BIT      0x01
+#	define DMODE_ACTIVE       0x00
+#	define DMODE_ALL          0x01
+#define DMODE_DEPTH_BITS      0x06
+#	define DMODE_SIMPLE       0x00
+#	define DMODE_PCB          0x02
+#	define DMODE_FULL         0x04
+
+#define DMODE_ACTIVE_SIMPLE   (DMODE_ACTIVE | DMODE_SIMPLE)
+#define DMODE_ACTIVE_PCB      (DMODE_ACTIVE | DMODE_PCB)
+#define DMODE_ACTIVE_FULL     (DMODE_ACTIVE | DMODE_FULL)
+#define DMODE_ALL_SIMPLE      (DMODE_ALL | DMODE_SIMPLE)
+#define DMODE_ALL_PCB         (DMODE_ALL | DMODE_PCB)
+#define DMODE_ALL_FULL        (DMODE_ALL | DMODE_FULL)
+
+#define	DMODE_VALID_BITS      0x07
+
+/*
 ** Quantum lengths - values are number of clock ticks
 */
 enum quantum_e {
@@ -420,11 +440,11 @@ void ctx_dump_all( const char *msg );
 **
 ** Dumps the contents of this PCB to the console
 **
-** @param msg[in]  An optional message to print before the dump
-** @param p[in]    The PCB to dump
-** @param all[in]  Dump all the contents?
+** @param msg[in]   An optional message to print before the dump
+** @param p[in]     The PCB to dump
+** @param mode[in]  Dump all the contents?
 */
-void pcb_dump( const char *msg, register pcb_t *p, bool_t all );
+void pcb_dump( const char *msg, register pcb_t *p, uint32_t mode );
 
 /**
 ** Name:	pcb_queue_dump
@@ -442,10 +462,19 @@ void pcb_queue_dump( const char *msg, pcb_queue_t queue, bool_t contents );
 **
 ** dump the contents of the "active processes" table
 **
-** @param msg[in]  Optional message to print
-** @param all[in]  Dump all or only part of the relevant data
+** @param msg[in]   Optional message to print
+** @param mode[in]  Dump mode or only part of the relevant data
 */
-void ptable_dump( const char *msg, bool_t all );
+void ptable_dump( const char *msg, uint32_t mode );
+
+/**
+** Name:    ptable_counts
+**
+** Generates counts of the number of each process state in ptable
+**
+** @param nums  Array of uint_t[N_STATES+1]
+*/
+void ptable_counts( uint_t nums[] );
 
 /**
 ** Name:	ptable_dump_counts

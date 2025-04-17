@@ -55,6 +55,12 @@
 ** the C compiler should be put here.
 */
 
+// macro to lowercase an uppercase alphabetic character
+#define LCASE(c)  (((c) >= 'A' && (c) <= 'Z') ? ((c)|0x20) : (c))
+
+// quick-and-dirty isprint() replacement
+#define ISPRINT(c) (((c) >= ' ' && (c) < 0x7f) || (c) == '\n' || (c) == '\t')
+
 /*
 ** System error codes
 **

@@ -14,6 +14,7 @@
 ** interrupted occurred.
 */
 
+#define KERNEL_SRC
 #define ASM_SRC
 
 #undef i386
@@ -118,6 +119,7 @@ isr_save:
 
 	.globl	current
 	.globl	kernel_esp
+	.globl	kstack
 
 	// save the context pointer
 	movl	current, %edx
@@ -130,7 +132,8 @@ isr_save:
 	// reentrant or interruptable ISRs, this code will need to
 	// be changed to support that!
 
-	movl	kernel_esp, %esp
+	// movl	kernel_esp, %esp
+	movl	$(kstack+SZ_KSTACK), %esp
 
 	// we don't change CR3 because all the user PDIRs are
 	// set up with mappings for the OS in the upper half
@@ -228,15 +231,15 @@ isr_restore:
 #
 	.section	.rodata
 fmtall:	.ascii	" time %08x pid %4u\n"
-#
-# END MOD FOR 20245
-#
 fmt:	.ascii	" ss=%08x  gs=%08x  fs=%08x  es=%08x  ds=%08x\n"
 	.ascii	"edi=%08x esi=%08x ebp=%08x esp=%08x ebx=%08x\n"
 	.ascii	"edx=%08x ecx=%08x eax=%08x vec=%08x cod=%08x\n"
 	.string	"eip=%08x  cs=%08x efl=%08x\n"
 
 	.text
+#
+# END MOD FOR 20245
+#
 
 /*
 ** END OF DEBUGGING CODE PART 2
@@ -310,7 +313,6 @@ ISR(0xf0);	ISR(0xf1);	ISR(0xf2);	ISR(0xf3);
 ISR(0xf4);	ISR(0xf5);	ISR(0xf6);	ISR(0xf7);
 ISR(0xf8);	ISR(0xf9);	ISR(0xfa);	ISR(0xfb);
 ISR(0xfc);	ISR(0xfd);	ISR(0xfe);	ISR(0xff);
-
 
 /*
 ** This table contains the addresses where each of the preceding

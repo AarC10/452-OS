@@ -59,6 +59,13 @@
 
 #ifndef ASM_SRC
 
+#ifdef CIO_DUP2_SIO
+// duplicate all non-scrolling-region console output to SIO -- will
+// be set by the SIO module when it's initialized
+extern unsigned char dupcio;
+
+#endif
+
 // EOT indicator (control-D)
 #define EOT '\04'
 

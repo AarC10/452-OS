@@ -60,7 +60,7 @@ typedef struct  {
 */
 static void unexpected_handler( int vector, int code ) {
 #ifdef RPT_INT_UNEXP
-	cio_printf( "\n** UNEXPECTED vector %d code %d\n", vector, code );
+	cio_printf( "\n** UNEXPECTED vector 0x%02x code %d\n", vector, code );
 #endif
 	panic( "Unexpected interrupt" );
 }
@@ -90,6 +90,9 @@ static void default_handler( int vector, int code ) {
 		** code above.  If we get down here, the isr table may
 		** have been corrupted.  Print a message and don't return.
 		*/
+#ifdef RPT_INT_UNEXP
+		cio_printf( "\n** DEFAULT vector 0x%02x code %d\n", vector, code );
+#endif
 		panic( "Unexpected \"expected\" interrupt!" );
 	}
 }

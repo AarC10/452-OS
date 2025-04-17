@@ -14,6 +14,8 @@
 
 #include <cio.h>
 #include <support.h>
+#include <x86/arch.h>
+#include <x86/desc.h>
 
 // Kernel library
 
@@ -68,11 +70,31 @@
 */
 
 // IDT entries are eight bytes
-#define IDT_PRINT(v) cio_printf( \
-		" [%02x] = %08x %08x @ %08x " # v "\n", (v), \
-		*(uint32_t *) (IDT_ADDR + ((v)<<3)), \
-		*(uint32_t *) (IDT_ADDR + ((v)<<3) + 4), \
-		(IDT_ADDR + ((v)<<3)) )
+#define	IDT_PRINT(v) do { \
+	intd_t *ptr = ((intd_t *) IDT_ADDR) + (v); \
+	cio_printf( " [%02x] = %08x %08x @ %08x\n", (v), \
+			*(uint32_t *) ptr, *((uint32_t *) ptr + 1), (uint32_t) ptr ); \
+	cio_printf( "   off %04x%04x", ptr->offset_31_16, ptr->offset_15_0 ); \
+	cio_printf( " seg %04x", ptr->selector ); \
+	dflags_t df; df.data = ptr->flags; \
+	cio_printf( " %s pl %d %s %x " # v "\n", df.bits.p ? "P" : "!P", \
+			df.bits.dpl, df.bits.s ? "C/D" : "S", df.bits.type ); \
+} while(0)
+
+#define GDT_PRINT(v) do { \
+	segd_t *ptr = ((segd_t *) GDT_ADDR) + (v); \
+	cio_printf( " [%02x] = %08x %08x @ %08x\n", (v), \
+			*(uint32_t *) ptr, *((uint32_t *) ptr + 1), (uint32_t) ptr ); \
+	cio_printf( "   base %02x%02x%04x", ptr->base_31_24, \
+			ptr->base_23_16, ptr->base_15_0 ); \
+	dflags_t df; df.data = ptr->flags; \
+	dflags2_t df2; df2.data = ptr->flags2; \
+	cio_printf( " lim %x%04x", df2.bits.limit_19_16, ptr->limit_15_0 ); \
+	cio_printf( " %s db %d %s avl %d", df2.bits.g ? "4KB" : "B", \
+			df2.bits.db, df2.bits.l ? "64" : "32", df2.bits.avl ); \
+	cio_printf( " %s pl %d %s %x " # v "\n", df.bits.p ? "P" : "!P", \
+			df.bits.dpl, df.bits.s ? "C/D" : "S", df.bits.type ); \
+} while(0)
 
 // longword printing
 #define MEM_PRINT_LW(base,v) cio_printf( \
@@ -282,10 +304,17 @@
 #define TRSTK           0
 #endif
 
+// 2^17 bit
+#ifdef T_SIOI
+#define TRSIOI          0x00100000
+#else
+#define TRSIOI          0
+#endif
+
 // 12 bits remaining for tracing options
 // next available bit: 0x00100000
 
-#define TRACE (TRDISP | TREXIT | TRINIT | TRKMEM | TRKMEM_F | TRKMEM_I | TRPCB | TRQUEUE | TRSCHED | TREXEC | TRSIO_RD | TRSIO_STAT | TRSIO_WR | TRFORK | TRVM | TRSYSCALLS | TRSYSRETS | TRUSER | TRELF | TRSTK)
+#define TRACE (TRDISP | TREXIT | TRINIT | TRKMEM | TRKMEM_F | TRKMEM_I | TRPCB | TRQUEUE | TRSCHED | TREXEC | TRSIO_RD | TRSIO_STAT | TRSIO_WR | TRFORK | TRVM | TRSYSCALLS | TRSYSRETS | TRUSER | TRELF | TRSTK | TRSIOI)
 
 #if TRACE > 0
 
@@ -306,7 +335,7 @@
 #define TRACING_FORK            ((TRACE & TRFORK) != 0)
 #define TRACING_EXEC            ((TRACE & TREXEC) != 0)
 #define TRACING_SIO_STAT        ((TRACE & TRSIO_STAT) != 0)
-#define TRACING_SIO_ISR         ((TRACE & TRSIO_ISR) != 0)
+#define TRACING_SIO_ISR         ((TRACE & TRSIOI) != 0)
 #define TRACING_SIO_RD          ((TRACE & TRSIO_RD) != 0)
 #define TRACING_SIO_WR          ((TRACE & TRSIO_WR) != 0)
 #define TRACING_USER            ((TRACE & TRUSER) != 0)

@@ -35,6 +35,7 @@
 struct pcb_queue_s {
 	pcb_t *head;
 	pcb_t *tail;
+	uint_t length;
 	enum pcb_queue_order_e order;
 };
 
@@ -84,7 +85,7 @@ const char state_str[N_STATES][4] = {
 	[ STATE_BLOCKED  ] = "Blk",       // "Blocked"
 	[ STATE_WAITING  ] = "Wat",       // "Waiting"
 	[ STATE_KILLED   ] = "Kil",       // "Killed"
-	[ STATE_ZOMBIE   ] = "Zom"       // "Zombie"
+	[ STATE_ZOMBIE   ] = "Zom"        // "Zombie"
 };
 
 // table of priority name strings
@@ -266,13 +267,14 @@ void pcb_free( pcb_t *pcb ) {
 		pcb->state = STATE_UNUSED;
 
 		// add it to the free list
+		pcb->next = NULL;
 		int status = pcb_queue_insert( pcb_freelist, pcb );
 
 		// if that failed, we're in trouble
 		if( status != SUCCESS ) {
-			sprint( b256, "pcb_free(0x%08x) status %d", (uint32_t) pcb,
-					status );
-			PANIC( 0, b256 );
+			sprint( b256, "pcb_free(0x%08x) queue insert status %d",
+					(uint32_t) pcb, status );
+			kpanic( b256 );
 		}
 	}
 }
@@ -505,6 +507,7 @@ void pcb_zombify( register pcb_t *victim ) {
 	*/
 
 	victim->state = STATE_ZOMBIE;
+	victim->next = NULL;
 	assert( pcb_queue_insert(zombie,victim) == SUCCESS );
 
 	/*
@@ -623,6 +626,7 @@ int pcb_queue_reset( pcb_queue_t queue, enum pcb_queue_order_e style ) {
 	// reset the queue
 	queue->head = queue->tail = NULL;
 	queue->order = style;
+	queue->length = 0;
 
 	return SUCCESS;
 }
@@ -659,16 +663,7 @@ uint_t pcb_queue_length( const pcb_queue_t queue ) {
 	// sanity check
 	assert1( queue != NULL );
 
-	// this is pretty simple
-	register pcb_t *tmp = queue->head;
-	register int num = 0;
-	
-	while( tmp != NULL ) {
-		++num;
-		tmp = tmp->next;
-	}
-
-	return num;
+	return queue->length;
 }
 
 /**
@@ -696,6 +691,7 @@ int pcb_queue_insert( pcb_queue_t queue, pcb_t *pcb ) {
 	// is the queue empty?
 	if( queue->head == NULL ) {
 		queue->head = queue->tail = pcb;
+		queue->length = 1;
 		return SUCCESS;
 	}
 	assert1( queue->tail != NULL );
@@ -749,6 +745,9 @@ int pcb_queue_insert( pcb_queue_t queue, pcb_t *pcb ) {
 
 	}
 
+	// one more entry in the queue
+	queue->length += 1;
+
 	return SUCCESS;
 }
 
@@ -780,10 +779,13 @@ int pcb_queue_remove( pcb_queue_t queue, pcb_t **pcb ) {
 	// disconnect it completely
 	tmp->next = NULL;
 
+	queue->length -= 1;
+
 	// was this the last thing in the queue?
 	if( queue->head == NULL ) {
 		// yes, so clear the tail pointer for consistency
 		queue->tail = NULL;
+		queue->length = 0;
 	}
 
 	// save the pointer
@@ -863,6 +865,7 @@ int pcb_queue_remove_this( pcb_queue_t queue, pcb_t *pcb ) {
 
 	// unlink current from queue
 	curr->next = NULL;
+	queue->length -= 1;
 
 	// there's a possible consistancy problem here if somehow
 	// one of the queue pointers is NULL and the other one
@@ -924,10 +927,14 @@ void schedule( pcb_t *pcb ) {
 
 	// mark it as ready
 	pcb->state = STATE_READY;
+	pcb->next = NULL;
 
 	// add it to the ready queue
-	if( pcb_queue_insert(ready,pcb) != SUCCESS ) {
-		PANIC( 0, "schedule insert fail" );
+	int status = pcb_queue_insert( ready, pcb );
+	if( status != SUCCESS ) {
+		sprint( b256, "schedule(0x%08x) queue insert status %d",
+				(uint32_t) pcb, status );
+		kpanic( b256 );
 	}
 }
 
@@ -944,8 +951,8 @@ void dispatch( void ) {
 	// grab whoever is at the head of the queue
 	int status = pcb_queue_remove( ready, &current );
 	if( status != SUCCESS ) {
-		sprint( b256, "dispatch queue remove failed, code %d", status );
-		PANIC( 0, b256 );
+		sprint( b256, "dispatch() queue remove status %d", status );
+		kpanic( b256 );
 	}
 
 	// set the process up for success
@@ -983,7 +990,7 @@ void ctx_dump( const char *msg, register context_t *c ) {
 	}
 
 	// now, the contents
-	cio_printf( "ss %04x gs %04x fs %04x es %04x ds %04x cs %04x\n",
+	cio_printf( "  ss %04x gs %04x fs %04x es %04x ds %04x cs %04x\n",
 				  c->ss & 0xff, c->gs & 0xff, c->fs & 0xff,
 				  c->es & 0xff, c->ds & 0xff, c->cs & 0xff );
 	cio_printf( "  edi %08x esi %08x ebp %08x esp %08x\n",
@@ -1019,15 +1026,15 @@ void ctx_dump_all( const char *msg ) {
 }
 
 /**
-** pcb_dump(msg,pcb,all)
+** pcb_dump(msg,pcb,mode)
 **
 ** Dumps the contents of this PCB to the console
 **
-** @param msg[in]  An optional message to print before the dump
-** @param pcb[in]  The PCB to dump
-** @param all[in]  Dump all the contents?
+** @param msg[in]   An optional message to print before the dump
+** @param pcb[in]   The PCB to dump
+** @param mode[in]  Dump all the contents?
 */
-void pcb_dump( const char *msg, register pcb_t *pcb, bool_t all ) {
+void pcb_dump( const char *msg, register pcb_t *pcb, uint32_t mode ) {
 
 	// first, the message (if there is one)
 	if( msg ) {
@@ -1046,7 +1053,10 @@ void pcb_dump( const char *msg, register pcb_t *pcb, bool_t all ) {
 	cio_printf( " %d %s", pcb->pid,
 			pcb->state >= N_STATES ? "???" : state_str[pcb->state] );
 
-	if( !all ) {
+	bool_t do_simple = (mode & DMODE_DEPTH_BITS) == DMODE_SIMPLE;
+	bool_t do_full   = (mode & DMODE_DEPTH_BITS) == DMODE_FULL;
+
+	if( do_simple ) {
 		// just printing IDs and states on one line
 		return;
 	}
@@ -1058,7 +1068,7 @@ void pcb_dump( const char *msg, register pcb_t *pcb, bool_t all ) {
 	cio_printf( " ticks %u xit %d wake %08x\n",
 				pcb->ticks, pcb->exit_status, pcb->wakeup );
 
-	cio_printf( " parent %08x", (uint32_t)pcb->parent );
+	cio_printf( "      parent %08x", (uint32_t)(pcb->parent) );
 	if( pcb->parent != NULL ) {
 		cio_printf( " (%u)", pcb->parent->pid );
 	}
@@ -1068,6 +1078,11 @@ void pcb_dump( const char *msg, register pcb_t *pcb, bool_t all ) {
 			(uint32_t) pcb->stack, pcb->stkpgs );
 
 	cio_putchar( '\n' );
+	
+	// do we also want a context dump?
+	if( do_full ) {
+		ctx_dump( "Context: ", pcb->context );
+	}
 }
 
 /**
@@ -1090,8 +1105,9 @@ void pcb_queue_dump( const char *msg, pcb_queue_t queue, bool_t contents ) {
 	cio_printf( "head %08x tail %08x",
 			(uint32_t) queue->head, (uint32_t) queue->tail );
 
-	// next, how the queue is ordered
-	cio_printf( " order %s\n",
+	// next, length and ordering
+	cio_printf( " len %d order %s\n",
+			queue->length,
 			queue->order >= N_ORDERINGS ? "????" : ord_str[queue->order] );
 
 	// if there are members in the queue, dump the first few PIDs
@@ -1111,58 +1127,85 @@ void pcb_queue_dump( const char *msg, pcb_queue_t queue, bool_t contents ) {
 }
 
 /**
-** ptable_dump(msg,all)
+** ptable_dump(msg,mode)
 **
 ** dump the contents of the "active processes" table
 **
-** @param msg[in]  Optional message to print
-** @param all[in]  Dump all or only part of the relevant data
+** @param msg[in]   Optional message to print
+** @param mode[in]  Dump all or only part of the relevant data
 */
-void ptable_dump( const char *msg, bool_t all ) {
+void ptable_dump( const char *msg, uint32_t mode ) {
 
 	if( msg ) {
 		cio_puts( msg );
 	}
-	cio_putchar( ' ' );
 
-	int used = 0;
-	int empty = 0;
+	if( (mode & ~DMODE_VALID_BITS) != 0 ) {
+		cio_printf( "mode %x unknown - range is [0..%x]\n", mode,
+				DMODE_VALID_BITS );
+		return;
+	}
+
+	bool_t do_all    = (mode & DMODE_ACTIVE_BIT) == DMODE_ALL;
+	bool_t do_simple = (mode & DMODE_DEPTH_BITS) == DMODE_SIMPLE;
+
+	uint_t nums[N_STATES+1] = { 0 };
+
+	ptable_counts( nums );
 
 	register pcb_t *pcb = ptable;
-	for( int i = 0; i < N_PROCS; ++i ) {
-		if( pcb->state == STATE_UNUSED ) {
+	for( int i = 0; i < N_PROCS; ++i, ++pcb ) {
 
-			// an empty slot
-			++empty;
+		// increment the state count
+		if( pcb->state >= N_STATES ) {
+			// bad state
+			cio_printf( " #%d: bad state %d\n", i, pcb->state );
+			continue;
+		}
 
+		// simple mode: only count entries
+		if( do_simple ) {
+			continue;
+		}
+
+		if( !do_all &&
+			(pcb->state == STATE_UNUSED || pcb->state >= N_STATES) ) {
+			continue;
+		}
+
+		// pcb mode or full mode
+
+		// report the table slot #
+		cio_printf( " #%2d:", i );
+
+		// and dump the contents
+		pcb_dump( NULL, pcb, mode );
+	}
+
+	ptable_dump_counts();
+}
+
+/**
+** Name:	ptable_counts
+**
+** Generates counts of the number of each process state in ptable
+**
+** @param nums  Array of uint_t[N_STATES+1]
+*/
+void ptable_counts( uint_t nums[] ) {
+
+	// clear out any previous counts
+	memclr( (void *)nums, sizeof(uint_t) * (N_STATES+1) );
+
+	pcb_t *ptr = ptable;
+	for( int n = 0; n < N_PROCS; ++n, ++ptr ) {
+		if( ptr->state < 0 || ptr->state >= N_STATES ) {
+			++nums[N_STATES];
 		} else {
-
-			// a non-empty slot
-			++used;
-
-			// if not dumping everything, add commas if needed
-			if( !all && used ) {
-				cio_putchar( ',' );
-			}
-
-			// report the table slot #
-			cio_printf( " #%d:", i );
-
-			// and dump the contents
-			pcb_dump( NULL, pcb, all );
+			++nums[ptr->state];
 		}
 	}
 
-	// only need this if we're doing one-line output
-	if( !all ) {
-		cio_putchar( '\n' );
-	}
-
-	// sanity check - make sure we saw the correct number of table slots
-	if( (used + empty) != N_PROCS ) {
-		cio_printf( "Table size %d, used %d + empty %d = %d???\n",
-					  N_PROCS, used, empty, used + empty );
-	}
 }
 
 /**
@@ -1172,27 +1215,18 @@ void ptable_dump( const char *msg, bool_t all ) {
 ** entries, number with each process state, etc.).
 */
 void ptable_dump_counts( void ) {
-	uint_t nstate[N_STATES] = { 0 };
-	uint_t unknown = 0;
+	uint_t nums[N_STATES+1];
 
-	int n = 0;
-	pcb_t *ptr = ptable;
-	while( n < N_PROCS ) {
-		if( ptr->state < 0 || ptr->state >= N_STATES ) {
-			++unknown;
-		} else {
-			++nstate[ptr->state];
-		}
-		++n;
-		++ptr;
-	}
+	ptable_counts( nums );
 
-	cio_printf( "Ptable: %u ***", unknown );
-	for( n = 0; n < N_STATES; ++n ) {
-		if( nstate[n] ) {
-			cio_printf( " %u %s", nstate[n],
-					state_str[n] != NULL ? state_str[n] : "???" );
+	cio_puts( "States:" );
+
+	uint_t used = 0;
+	for( int i = 0; i < N_STATES; ++i ) {
+		used += nums[i];
+		if( nums[i] > 0 ) {
+			cio_printf( " %s [%d]", state_str[i], nums[i] );
 		}
 	}
-	cio_putchar( '\n' );
+	cio_printf( " -> %d/%u (%d)\n", used, N_PROCS, nums[N_STATES] );
 }

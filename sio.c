@@ -72,10 +72,15 @@
 #include <sio.h>
 #include <lib.h>
 
+#ifdef CIO_DUP2_SIO
+#include <cio.h>
+#endif
+
 /*
 ** PRIVATE DEFINITIONS
 */
 
+// this is probably significant overkill
 #define BUF_SIZE    2048
 
 /*
@@ -83,9 +88,9 @@
 */
 
 	// input character buffer
-static char inbuffer[ BUF_SIZE ];
-static char *inlast;
-static char *innext;
+static char inbuffer[ BUF_SIZE ];  // the buffer
+static char *inlast;               // tail end
+static char *innext;               // first available character
 static uint32_t incount;
 
 	// output character buffer
@@ -126,7 +131,7 @@ static void sio_isr( int vector, int ecode ) {
 	int ch;
 
 #if TRACING_SIO_ISR
-	cio_puts( "SIO: int:" );
+cio_puts( "SIO: int:" );
 #endif
 	//
 	// Must process all pending events; loop until the IRR
@@ -148,51 +153,65 @@ static void sio_isr( int vector, int ecode ) {
 
 		case UA4_IIR_RX:
 #if TRACING_SIO_ISR
-	cio_puts( " RX" );
+cio_puts( " RX" );
 #endif
-			// get the character
-			ch = inb( UA4_RXD );
-			if( ch == '\r' ) {    // map CR to LF
-				ch = '\n';
-			}
+
+			// read all the characters available in the receiver
+			while( (inb(UA4_LSR) & UA4_LSR_RXDA) != 0 ) {
+				// get the character
+				ch = inb( UA4_RXD );
+				if( ch == '\r' ) {    // map CR to LF
+					ch = '\n';
+				}
 #if TRACING_SIO_ISR
-	cio_printf( " ch %02x", ch );
+cio_printf( " ch %02x", ch );
 #endif
+				if( incount < BUF_SIZE ) {
+					*inlast++ = ch;
+					++incount;
+				}
+			}
 
 #ifdef QNAME
-			//
-			// If there is a waiting process, this must be
-			// the first input character; give it to that
-			// process and awaken the process.
-			//
+			/*
+			** If there is a waiting process, wake it up and
+			** give it whatever data it will accept.
+			**
+			** This is not terribly realistic, as we make no
+			** effort to ensure that all the characters entered
+			** on a single line go to the same process, but
+			** this is all "proof of concept" anyway, so....
+			*/
 
 			if( !QEMPTY(QNAME) ) {
-				PCBTYPE *pcb;
+				PCBTYPE *pcb = NULL;
 
 				QDEQUE( QNAME, pcb );
 				// make sure we got a non-NULL result
 				assert( pcb );
 
-				// return char via arg #2 and count in EAX
+				// get user buffer address
 				char *buf = (char *) ARG(pcb,2);
-				*buf = ch & 0xff;
-				RET(pcb) = 1;
+				// and buffer length
+				uint32_t len = ARG(pcb,3);
+#if TRACING_SIO_ISR
+cio_printf( " DQ pid %u, buf %08x len %u", pcb->pid, (uint32_t) buf, len );
+#endif
+
+				int num = 0;
+				while( len > 0 && incount > 0 ) {
+					*buf++ = *innext++;
+					--len;
+					--incount;
+					++num;
+				}
+				RET(pcb) = num;
 				SCHED( pcb );
 
-			} else {
-#endif /* QNAME */
-
-				//
-				// Nobody waiting - add to the input buffer
-				// if there is room, otherwise just ignore it.
-				//
-
-				if( incount < BUF_SIZE ) {
-					*inlast++ = ch;
-					++incount;
+				if( incount < 1 ) {
+					inlast = innext = inbuffer;
+					incount = 0;
 				}
-
-#ifdef QNAME
 			}
 #endif /* QNAME */
 			break;
@@ -205,12 +224,12 @@ static void sio_isr( int vector, int ecode ) {
 
 		case UA4_IIR_TX:
 #if TRACING_SIO_ISR
-	cio_puts( " TX" );
+cio_puts( " TX" );
 #endif
 			// if there is another character, send it
 			if( sending && outcount > 0 ) {
 #if TRACING_SIO_ISR
-	cio_printf( " ch %02x", *outnext );
+cio_printf( " ch %02x", *outnext );
 #endif
 				outb( UA4_TXD, *outnext );
 				++outnext;
@@ -220,11 +239,11 @@ static void sio_isr( int vector, int ecode ) {
 				}
 				--outcount;
 #if TRACING_SIO_ISR
-	cio_printf( " (outcount %d)", outcount );
+cio_printf( " (outcount %d)", outcount );
 #endif
 			} else {
 #if TRACING_SIO_ISR
-	cio_puts( " EOS" );
+cio_puts( " EOS" );
 #endif
 				// no more data - reset the output vars
 				outcount = 0;
@@ -237,7 +256,7 @@ static void sio_isr( int vector, int ecode ) {
 
 		case UA4_IIR_NO_INT:
 #if TRACING_SIO_ISR
-	cio_puts( " EOI\n" );
+cio_puts( " EOI\n" );
 #endif
 			// nothing to do - tell the PIC we're done
 			outb( PIC1_CMD, PIC_EOI );
@@ -251,7 +270,7 @@ static void sio_isr( int vector, int ecode ) {
 		default:
 			// uh-oh....
 			sprint( b256, "sio isr: IIR %02x\n", ((uint32_t) iir) & 0xff );
-			PANIC( 0, b256 );
+			kpanic( b256 );
 		}
 	
 	}
@@ -342,6 +361,11 @@ void sio_init( void ) {
 	*/
 
 	install_isr( VEC_COM1, sio_isr );
+
+#ifdef CIO_DUP2_SIO
+	// indicate our readiness to the CIO module
+	dupcio = 1;
+#endif
 }
 
 /**
@@ -459,11 +483,11 @@ void sio_flush( uint8_t which ) {
 **
 ** Get the input queue length
 **
-** usage:    int num = sio_inq_length()
+** usage:    uint32_t num = sio_inq_length()
 **
 ** @return the count of characters still in the input queue
 */
-int sio_inq_length( void ) {
+uint32_t sio_inq_length( void ) {
 	return( incount );
 }
 
@@ -689,9 +713,10 @@ void sio_dump( bool_t full ) {
 
 	// dump basic info into the status region
 
-	cio_printf_at( 48, 0,
-		"SIO: IER %02x (%c%c%c) in %d ot %d",
-			((uint32_t)ier) & 0xff, sending ? '*' : '.',
+//	cio_printf_at( 48, 0, "SIO: IER %02x (%02x) (%c%c%c) in %d ot %d",
+	cio_printf( "SIO: IER %02x (%02x) (%c%c%c) in %d ot %d\n",
+			((uint32_t)ier) & 0xff, inb(UA4_PORT),
+			sending ? '*' : '.',
 			(ier & UA4_IER_TX_IE) ? 'T' : 't',
 			(ier & UA4_IER_RX_IE) ? 'R' : 'r',
 			incount, outcount );

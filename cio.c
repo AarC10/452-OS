@@ -19,6 +19,7 @@
 ** Compile-time options:
 **
 **	VIDEO_BW                Select black-on-white video
+**	CIO_DUP2_SIO            Copy all non-scrolling-region CIO output to SIO
 **
 */
 
@@ -31,6 +32,14 @@
 #include <x86/pic.h>
 #include <x86/ops.h>
 #include <x86/vga.h>
+
+#ifdef CIO_DUP2_SIO
+#include <sio.h>
+
+// duplicate all non-scrolling-region console output to SIO -- will
+// be set by the SIO module when it's initialized
+unsigned char dupcio;
+#endif
 
 /*
 ** Default color selection
@@ -61,8 +70,6 @@ static void (*notify)(int);
 
 #ifdef  SA_DEBUG
 #include <stdio.h>
-#define cio_putchar   putchar
-#define cio_puts(x)   fputs( x, stdout )
 #endif
 
 /*
@@ -108,6 +115,21 @@ static void putchar_at( unsigned int x, unsigned int y, unsigned int c ) {
 		} else {
 			*addr = (unsigned short)c | VGA_DEFAULT;
 		}
+#ifdef CIO_DUP2_SIO
+		// only dup if we're within the scrolling region
+		if( x < scroll_min_x || x > scroll_max_x ||
+			y < scroll_min_y || y > scroll_max_y ) {
+			return;
+		}
+		if( ISPRINT(c) ) {
+			// only the 'character' part
+			sio_writec( c & 0xff );
+		} else {
+			char buf[16];
+			sprint( buf, "\\x%02x", c & 0xff );
+			sio_write( buf, 4 );
+		}
+#endif
 	}
 }
 
@@ -169,7 +191,9 @@ void cio_putchar_at( unsigned int x, unsigned int y, unsigned int c ) {
 	}
 }
 
-#ifndef SA_DEBUG
+#ifdef  SA_DEBUG
+#define cio_putchar   putchar
+#else
 void cio_putchar( unsigned int c ) {
 	/*
 	** If we're off the bottom of the screen, scroll the window.
@@ -222,7 +246,9 @@ void cio_puts_at( unsigned int x, unsigned int y, const char *str ) {
 	}
 }
 
-#ifndef SA_DEBUG
+#ifdef  SA_DEBUG
+#define cio_puts(x)   fputs( x, stdout )
+#else
 void cio_puts( const char *str ) {
 	unsigned int ch;
 
@@ -722,6 +748,10 @@ void cio_init( void (*fcn)(int) ) {
 	** Set up the interrupt handler for the keyboard
 	*/
 	install_isr( VEC_KBD, keyboard_isr );
+
+#ifdef CIO_DUP2_SIO
+	dupcio = 0;
+#endif
 }
 
 #ifdef SA_DEBUG

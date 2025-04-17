@@ -13,6 +13,8 @@
 # Other options:
 #	-nographic
 #	-display gtk
+#	-serial mon:stdio
+#	-serial pty
 #
 
 QEMU=/home/course/csci352/bin/qemu-system-i386

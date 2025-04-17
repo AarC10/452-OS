@@ -71,7 +71,7 @@ static void clk_isr( int vector, int code ) {
 	// reporting frequency, in seconds.
 
 	if( (system_time % SEC_TO_TICKS(SYSTEM_STATUS)) == 0 ) {
-		cio_printf_at( 1, 0, " queues: R[%u] W[%u] S[%u] Z[%u] I[%u]   ",
+		cio_printf_at( 1, 0, " queues: R[%u] W[%u] Sl[%u] Z[%u] Si[%u]   ",
 			pcb_queue_length(ready),
 			pcb_queue_length(waiting),
 			pcb_queue_length(sleeping),

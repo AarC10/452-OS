@@ -12,9 +12,9 @@
 # OS files
 #
 
-OS_C_SRC = cio.c clock.c kernel.c klibc.c kmem.c list.c procs.c \
+OS_C_SRC = cio.c clock.c klibc.c kmem.c list.c main.c procs.c \
 	   sio.c support.c syscalls.c user.c
-OS_C_OBJ = cio.o clock.o kernel.o klibc.o kmem.o list.o procs.o \
+OS_C_OBJ = cio.o clock.o klibc.o kmem.o list.o main.o procs.o \
 	   sio.o support.o syscalls.o user.o
 
 OS_S_SRC = startup.o isrs.o
@@ -91,7 +91,7 @@ GEN_OPTIONS = -DOS_CONFIG -DSYSTEM_STATUS=10 -DFORCE_INLINING \
 #   RPT_INT_MYSTERY     report interrupt 0x27 specifically
 #   TRACE_CX            context restore tracing
 #   SANITY=n            enable "sanity check" level 'n' (0/1/2/3/4)
-#   T_*                 tracing options (see below)
+#   CIO_DUP2_SIO        copy all console output to SIO as well
 #
 # Some modules have their own internal debugging options, described
 # in their introductory comments.
@@ -100,7 +100,7 @@ GEN_OPTIONS = -DOS_CONFIG -DSYSTEM_STATUS=10 -DFORCE_INLINING \
 # If not defined, SANITY defaults to 9999.
 #
 
-DBG_OPTIONS = -DRPT_INT_UNEXP -DTRACE_CX
+DBG_OPTIONS = -DRPT_INT_UNEXP -DTRACE_CX -DCIO_DUP2_SIO
 
 #
 # T_ options are used to define bits in a "tracing" bitmask, to allow
@@ -161,14 +161,14 @@ ASFLAGS = --32
 LD = ld
 LDFLAGS = -melf_i386 -no-pie -nostdlib
 
+# kernel load point - must agree with what's in kernel.ld!
+KLDPT = 0x10000
+
 # kernel linker flags
-KLDFLAGS = -T kernel.ld -Map=kernel.map
+KLDFLAGS = -Ttext $(KLDPT) -Map=kernel.map
 
 # flags for creating binary blobs (.b files)
 BLDFLAGS = -Ttext 0 -s --oformat binary
-
-# kernel load point - must agree with what's in kernel.ld!
-KLDPT = 0x10000
 
 # archiver flags
 AR = ar
@@ -239,18 +239,18 @@ QEMUOPTS = -drive file=disk.img,index=0,media=disk,format=raw $(QEMUEXTRA)
 .S.s:
 	$(CPP) $(CPPFLAGS) -o $*.s $*.S
 
-.S.o:
-	$(CC) $(CFLAGS) -c -o $*.o $*.S
-	$(OBJDUMP) -S $*.o > $*.asm
-
 #.S.o:
-#	$(CPP) $(CPPFLAGS) -o $*.s $*.S
-#	$(AS) $(ASFLAGS) -o $*.o $*.s -a=$*.lst
-#	$(RM) -f $*.s
+#	$(CC) $(CFLAGS) -c -o $*.o $*.S
+#	$(OBJDUMP) -S $*.o > $*.asm
+
+.S.o:
+	$(CPP) $(CPPFLAGS) -o $*.s $*.S
+	$(AS) $(ASFLAGS) -o $*.o $*.s -a=$*.lst
+	$(RM) -f $*.s
 
 .s.b:
 	$(AS) $(ASFLAGS) -o $*.o $*.s -a=$*.lst
-	$(LD) $(LDFLAGS) $(BLDFLAGS) -e begtext -o $*.b $*.o
+	$(LD) $(LDFLAGS) $(BLDFLAGS) -e bootentry -o $*.b $*.o
 
 .c.o:
 	$(CC) $(CFLAGS) -c -o $*.o $*.c
@@ -287,20 +287,25 @@ vars.%: FORCE
 disk.img: include/offsets.h boot.b kernel.b BuildImage
 	./BuildImage -d usb -o disk.img -b boot.b kernel.b $(KLDPT)
 
-kernel:	$(OBJECTS) vars.CFLAGS vars.LDFLAGS vars.KLDFLAGS
-	$(LD) $(LDFLAGS) $(KLDFLAGS) -o kernel $(OBJECTS)
-	$(OBJDUMP) -S kernel > kernel.asm
-	$(NM) -n kernel > kernel.sym
+#kernel:	$(OBJECTS) vars.CFLAGS vars.LDFLAGS vars.KLDFLAGS
+#	$(LD) $(LDFLAGS) $(KLDFLAGS) -o kernel $(OBJECTS)
+#	$(OBJDUMP) -S kernel > kernel.asm
+#	$(NM) -n kernel > kernel.sym
 
-kernel.b:	kernel vars.BLDFLAGS
-	$(LD) $(LDFLAGS) -o kernel.b -s --oformat binary -Ttext $(KLDPT) kernel
+kernel.o:	$(OBJECTS) vars.CFLAGS vars.LDFLAGS vars.KLDFLAGS
+	$(LD) $(LDFLAGS) $(KLDFLAGS) -o kernel.o $(OBJECTS)
+	$(OBJDUMP) -S kernel.o > kernel.asm
+	$(NM) -n kernel.o > kernel.sym
 
-boot.o:	boot.S vars.CFLAGS
-	$(CC) $(CFLAGS) -c -o $*.o $*.S
-	$(OBJDUMP) -S $*.o > $*.asm
+kernel.b:	kernel.o vars.BLDFLAGS
+	$(LD) $(LDFLAGS) -o kernel.b -s --oformat binary -Ttext $(KLDPT) kernel.o
 
-boot.b:	boot.o vars.LDFLAGS vars.BLDFLAGS
-	$(LD) $(LDFLAGS) $(BLDFLAGS) -e bootentry -o boot.b boot.o
+#boot.o:	boot.S vars.CFLAGS
+#	$(CC) $(CFLAGS) -c -o $*.o $*.S
+#	$(OBJDUMP) -S $*.o > $*.asm
+
+#boot.b:	boot.o vars.LDFLAGS vars.BLDFLAGS
+#	$(LD) $(LDFLAGS) $(BLDFLAGS) -e bootentry -o boot.b boot.o
 
 # all object files
 $(OBJECTS):	vars.CFLAGS

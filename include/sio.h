@@ -90,11 +90,11 @@ void sio_flush( uint8_t which );
 **
 ** Get the input queue length
 **
-** usage:   int num = sio_inq_length()
+** usage:   uint32_t num = sio_inq_length()
 **
 ** @return the count of characters still in the input queue
 */
-int sio_inq_length( void );
+uint32_t sio_inq_length( void );
 
 /**
 ** sio_readc()
