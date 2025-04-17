@@ -16,3 +16,4 @@ BuildImage
 *.img
 *FLAGS 
 Offsets
+tags
