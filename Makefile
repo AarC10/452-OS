@@ -13,9 +13,9 @@
 #
 
 OS_C_SRC = cio.c clock.c klibc.c kmem.c list.c main.c procs.c \
-	   sio.c support.c syscalls.c user.c
+	   sio.c support.c syscalls.c user.c vga_graphics.c
 OS_C_OBJ = cio.o clock.o klibc.o kmem.o list.o main.o procs.o \
-	   sio.o support.o syscalls.o user.o
+	   sio.o support.o syscalls.o user.o vga_graphics.o
 
 OS_S_SRC = startup.o isrs.o
 OS_S_OBJ = startup.o isrs.o

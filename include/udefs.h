@@ -79,11 +79,11 @@
 USERMAIN(init);    USERMAIN(idle);    USERMAIN(shell);
 
 // these are started by other processes (e.g., the shell)
-USERMAIN(progABC); USERMAIN(progDE);  USERMAIN(progFG); USERMAIN(progH);
-USERMAIN(progI);   USERMAIN(progJ);   USERMAIN(progKL); USERMAIN(progMN);
-USERMAIN(progO);   USERMAIN(progP);   USERMAIN(progQ);  USERMAIN(progR);
-USERMAIN(progS);   USERMAIN(progTUV); USERMAIN(progW);  USERMAIN(progX);
-USERMAIN(progY);   USERMAIN(progZ);
+USERMAIN(progABC); USERMAIN(progDE);  USERMAIN(progFG);     USERMAIN(progH);
+USERMAIN(progI);   USERMAIN(progJ);   USERMAIN(progKL);     USERMAIN(progMN);
+USERMAIN(progO);   USERMAIN(progP);   USERMAIN(progQ);      USERMAIN(progR);
+USERMAIN(progS);   USERMAIN(progTUV); USERMAIN(progW);      USERMAIN(progX);
+USERMAIN(progY);   USERMAIN(progZ);   USERMAIN(color_test);
 
 #endif /* !ASM_SRC */
 
@@ -134,5 +134,6 @@ USERMAIN(progY);   USERMAIN(progZ);
 #define SPAWN_T
 #define SPAWN_U
 #define SPAWN_V
+#define SPAWN_COLOR_TEST
 
 #endif

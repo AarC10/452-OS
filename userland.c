@@ -116,3 +116,7 @@ typedef struct proc_s {
 #include <usercode/progTUV.c>
 #include <usercode/progW.c>
 #endif
+
+#if defined(SPAWN_COLOR_TEST)
+#include <usercode/color_test.c>
+#endif
