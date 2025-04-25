@@ -7,7 +7,7 @@
 /**
 ** User function: color_test
 **
-** Fills the entire VGA screen with red (color index 4).
+** Draws classic VGA vertical color stripes across the screen.
 **
 ** Invoked as:  color_test
 */
@@ -17,27 +17,31 @@ USERMAIN(color_test)
     char *name = argv[0] ? argv[0] : "nobody";
     char buf[128];
 
-    usprint(buf, "%s: filling screen with red\n", name);
+    usprint(buf, "%s: drawing VGA color stripes\n", name);
     swrites(buf);
 
     // This function assumes mode 13h (320x200x256) is already active.
 
-    const uint8_t RED = 4; // Standard red index in VGA palette
+    const int num_stripes = 16;
+    const int stripe_width = VGA_WIDTH / num_stripes;
 
-    for (int y = 0; y < 200; ++y)
+    for (int i = 0; i < num_stripes; ++i)
     {
-        for (int x = 0; x < 320; ++x)
+        uint8_t color = (uint8_t)i;
+
+        for (int y = 0; y < VGA_HEIGHT; ++y)
         {
-            vga_put_pixel(x, y, RED);
+            for (int x = i * stripe_width; x < (i + 1) * stripe_width; ++x)
+            {
+                vga_put_pixel(x, y, color);
+            }
         }
     }
 
-    // Wait a bit so user can see the screen (adjust as needed)
-    sleep(2);
+    // Wait so the user can see it
+    sleep(3);
 
-    // Optionally exit cleanly
     exit(0);
-
     return 0;
 }
 #endif

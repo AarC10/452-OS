@@ -1,5 +1,6 @@
 #ifndef UINIT_INC_C_
 #define UINIT_INC_C_
+
 #include <common.h>
 
 /**
@@ -22,13 +23,16 @@ static proc_t in_spawn_table[] = {
 	// the idle process; it runs at Deferred priority,
 	// so it will only be dispatched when there is
 	// nothing else available to be dispatched
-	PROCENT( idle, PRIO_DEFERRED, ".", "idle", "." ),
+	// PROCENT( idle, PRIO_DEFERRED, ".", "idle", "." ),
 
 	// // the user shell
 	// PROCENT( shell, PRIO_STD, "@", "shell" ),
 
-	// the user shell
-	PROCENT( color_test, PRIO_STD, "&", "color_test" ),
+	// // color_test for vertical color bars
+	// PROCENT( color_test, PRIO_HIGH, "&", "color_test" ),
+
+	// drawing_test for various VGA drawing function testing
+	PROCENT( drawing_test, PRIO_HIGH, "&", "drawing_test" ),
 
 	// a dummy entry to use as a sentinel
 	// { TBLEND }

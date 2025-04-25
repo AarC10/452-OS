@@ -120,3 +120,7 @@ typedef struct proc_s {
 #if defined(SPAWN_COLOR_TEST)
 #include <usercode/color_test.c>
 #endif
+
+#if defined(SPAWN_DRAWING_TEST)
+#include <usercode/drawing_test.c>
+#endif
