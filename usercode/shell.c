@@ -122,7 +122,9 @@ static proc_t sh_spawn_table[] = {
 #if defined(SPAWN_V)
 	PROCENT( progTUV, PRIO_STD, "V", "userV", "V", "6", "k" ),
 #endif
-	
+
+	PROCENT(serialTest, PRIO_STD, "W", "test"),
+
 	// a dummy entry to use as a sentinel
 	// { TBLEND }
 	{ 0 }	// all fields are zeroes, including 'valid'

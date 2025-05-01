@@ -575,6 +575,82 @@ int sio_read( char *buf, int length ) {
 	return( copied );
 }
 
+/**
+** sio_dmx(port,data)
+**
+** Wraps the given DMX slot data into DMX frames and writes the
+** DMX packet to the given serial port
+**
+** usage:    sio_dmx( int port, uint8_t data[DMX_SLOTS] )
+**
+** @param port	The serial port to write out of
+** @param data	An array of DMX slot data
+*/
+void sio_dmx( int port, uint8_t data[DMX_SLOTS] ) {
+	/*
+	Implementation/Standard Notes:
+		- At 115.2 kbaud, each bit is ~8.4usec (DMX standard is 4usec)
+		- Bits go from LSB to MSB (0b100 shows up as 0b001)
+		- Start procedure: "SPACE" for BREAK, "MARK" after BREAK, START Code
+	*/
+
+	// DMX Reset Procedure
+	for (int i = 0; i < 2; i++) {
+		outb(port, NULL); // "SPACE" for BREAK (>92usec)
+	}
+
+	outb(port, 0b01000011);
+	/*
+		0b0 1 0000 11
+		            ^->"MARK" after BREAK (>8usec)
+				^->START Code (all 0s)
+		    ^->Stop bits (x2 HIGH bits)
+	*/
+
+	// Builds an array of complete DMX frames
+	char bits[DMX_SLOTS * DMX_FRAME_SIZE];
+
+	for (int i = 0; i < DMX_SLOTS; i++) {
+		int base = i * DMX_FRAME_SIZE + 1;
+
+		bits[base - 1] = 0; // Start bit
+		
+		// Data bits
+		for (int bit = 0; bit < DMX_FRAME_DATA_SIZE; bit++) {
+			bits[base + bit] = (data[i] & (1 << bit)) >> bit;
+		}
+
+		// Stop bits
+		for (int j = 0; j < 2; j++) {
+			bits[base + DMX_FRAME_DATA_SIZE + j] = 1;
+		}
+	}
+
+	// Send out data from LSB to MSB
+	for (int i = 0; i < sizeof(bits) / sizeof(bits[0]) / 8; i++) {
+		int base = i * 8;
+
+		uint8_t byte = 0;
+
+		// Flip bits
+		for (int bit = 7; bit >= 0; bit--) {
+			byte <<= 1;
+			byte |= bits[base + bit];
+		}
+
+		for (int i = 0; i < 8; i++) {
+			cio_printf("%d ", bits[base + i]);
+		}
+
+		outb(port, byte);
+
+		char binary[9];
+
+		itoa(byte, binary, 2);
+
+		cio_printf("\n%d-%08s\n", byte, binary);
+	}
+}
 
 /**
 ** sio_writec( ch )

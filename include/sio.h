@@ -121,6 +121,12 @@ int sio_readc( void );
 */
 int sio_read( char *buffer, int length );
 
+#define DMX_SLOTS 8
+#define DMX_FRAME_SIZE (sizeof(uint8_t) * 8 + 3)
+#define DMX_FRAME_DATA_SIZE sizeof(uint8_t) * 8
+
+void sio_dmx(int port, uint8_t data[DMX_SLOTS]);
+
 /**
 ** sio_writec( ch )
 **
