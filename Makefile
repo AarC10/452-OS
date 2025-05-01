@@ -367,9 +367,9 @@ BuildImage:     BuildImage.c
 	@mkdir -p $(@D)
 	$(CC) -std=c99 -ggdb -o BuildImage BuildImage.c
 
-# Network stack test prog
-networktest: networktests.c $(NET_C_OBJ)
-	$(CC) $(CFLAGS) -o networktest networktests.c $(NET_C_OBJ)
+networktest: networktests.c
+	@echo "Compiling network stack..."
+	$(CC) -m32 -std=c99 -ggdb -I./include -DUSE_STDLIB_MEM_FUNCTIONS networktests.c ethernet.c ipv4.c udp.c -o networktest
 
 #
 # Offsets is compiled using -mx32 to force a 32-bit execution environment

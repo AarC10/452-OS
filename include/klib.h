@@ -13,6 +13,10 @@
 
 #ifndef ASM_SRC
 
+#ifdef USE_STDLIB_MEM_FUNCTIONS
+#include <string.h>
+#endif
+
 #include <x86/ops.h>
 
 /*
@@ -34,8 +38,9 @@
 ** @param src   Source buffer
 ** @param len   Buffer size (in bytes)
 */
-void blkmov( void *dst, const void *src, register uint32_t len );
+void blkmov(void *dst, const void *src, register uint32_t len);
 
+#ifndef USE_STDLIB_MEM_FUNCTIONS
 /**
 ** memset(buf,len,value)
 **
@@ -45,7 +50,7 @@ void blkmov( void *dst, const void *src, register uint32_t len );
 ** @param len    Buffer size (in bytes)
 ** @param value  Initialization value
 */
-void memset( void *buf, register uint32_t len, register uint32_t value );
+void memset(void *buf, register uint32_t len, register uint32_t value);
 
 /**
 ** memclr(buf,len)
@@ -55,7 +60,7 @@ void memset( void *buf, register uint32_t len, register uint32_t value );
 ** @param buf    The buffer to initialize
 ** @param len    Buffer size (in bytes)
 */
-void memclr( void *buf, register uint32_t len );
+void memclr(void *buf, register uint32_t len);
 
 /**
 ** memcpy(dst,src,len)
@@ -68,7 +73,7 @@ void memclr( void *buf, register uint32_t len );
 ** @param src   Source buffer
 ** @param len   Buffer size (in bytes)
 */
-void memcpy( void *dst, register const void *src, register uint32_t len );
+void memcpy(void *dst, register const void *src, register uint32_t len);
 
 /**
 ** memmove(dst,src,len)
@@ -80,7 +85,8 @@ void memcpy( void *dst, register const void *src, register uint32_t len );
 ** @param src   Source buffer
 ** @param len   Buffer size (in bytes)
 */
-void memmove( void *dst, register const void *src, register uint32_t len );
+void memmove(void *dst, register const void *src, register uint32_t len);
+#endif
 
 /*
 **********************************************
@@ -96,7 +102,7 @@ void memmove( void *dst, register const void *src, register uint32_t len );
 **
 ** @return The converted integer
 */
-int str2int( register const char *str, register int base );
+int str2int(register const char *str, register int base);
 
 /**
 ** strlen(str) - return length of a NUL-terminated string
@@ -105,7 +111,7 @@ int str2int( register const char *str, register int base );
 **
 ** @return The length of the string, or 0
 */
-uint32_t strlen( register const char *str );
+uint32_t strlen(register const char *str);
 
 /**
 ** strcmp(s1,s2) - compare two NUL-terminated strings
@@ -115,7 +121,7 @@ uint32_t strlen( register const char *str );
 **
 ** @return negative if s1 < s2, zero if equal, and positive if s1 > s2
 */
-int strcmp( register const char *s1, register const char *s2 );
+int strcmp(register const char *s1, register const char *s2);
 
 /**
 ** strcpy(dst,src) - copy a NUL-terminated string
@@ -127,7 +133,7 @@ int strcmp( register const char *s1, register const char *s2 );
 **
 ** NOTE:  assumes dst is large enough to hold the copied string
 */
-char *strcpy( register char *dst, register const char *src );
+char *strcpy(register char *dst, register const char *src);
 
 /**
 ** strcat(dst,src) - append one string to another
@@ -139,7 +145,7 @@ char *strcpy( register char *dst, register const char *src );
 **
 ** NOTE:  assumes dst is large enough to hold the resulting string
 */
-char *strcat( register char *dst, register const char *src );
+char *strcat(register char *dst, register const char *src);
 
 /**
 ** pad(dst,extra,padchar) - generate a padding string
@@ -152,7 +158,7 @@ char *strcat( register char *dst, register const char *src );
 **
 ** NOTE: does NOT NUL-terminate the buffer
 */
-char *pad( char *dst, int extra, int padchar );
+char *pad(char *dst, int extra, int padchar);
 
 /**
 ** padstr(dst,str,len,width,leftadjust,padchar - add padding characters
@@ -169,8 +175,8 @@ char *pad( char *dst, int extra, int padchar );
 **
 ** NOTE: does NOT NUL-terminate the buffer
 */
-char *padstr( char *dst, char *str, int len, int width,
-				int leftadjust, int padchar );
+char *padstr(char *dst, char *str, int len, int width, int leftadjust,
+             int padchar);
 
 /**
 ** sprint(dst,fmt,...) - formatted output into a string buffer
@@ -187,7 +193,7 @@ char *padstr( char *dst, char *str, int len, int width,
 ** (parameters are pushed onto the stack in reverse order as
 ** 32-bit values).
 */
-void sprint( char *dst, char *fmt, ... );
+void sprint(char *dst, char *fmt, ...);
 
 /*
 **********************************************
@@ -207,7 +213,7 @@ void sprint( char *dst, char *fmt, ... );
 **
 ** NOTE:  assumes buf is large enough to hold the resulting string
 */
-char *cvtuns0( char *buf, uint32_t value );
+char *cvtuns0(char *buf, uint32_t value);
 
 /**
 ** cvtuns(buf,value)
@@ -221,7 +227,7 @@ char *cvtuns0( char *buf, uint32_t value );
 **
 ** NOTE:  assumes buf is large enough to hold the resulting string
 */
-int cvtuns( char *buf, uint32_t value );
+int cvtuns(char *buf, uint32_t value);
 
 /**
 ** cvtdec0(buf,value) - local support routine for cvtdec()
@@ -236,7 +242,7 @@ int cvtuns( char *buf, uint32_t value );
 **
 ** NOTE:  assumes buf is large enough to hold the resulting string
 */
-char *cvtdec0( char *buf, int value );
+char *cvtdec0(char *buf, int value);
 
 /**
 ** cvtdec(buf,value)
@@ -251,7 +257,7 @@ char *cvtdec0( char *buf, int value );
 **
 ** NOTE:  assumes buf is large enough to hold the resulting string
 */
-int cvtdec( char *buf, int32_t value );
+int cvtdec(char *buf, int32_t value);
 
 /**
 ** cvthex(buf,value)
@@ -267,7 +273,7 @@ int cvtdec( char *buf, int32_t value );
 **
 ** NOTE:  assumes buf is large enough to hold the resulting string
 */
-int cvthex( char *buf, uint32_t value );
+int cvthex(char *buf, uint32_t value);
 
 /**
 ** cvtoct(buf,value)
@@ -283,7 +289,7 @@ int cvthex( char *buf, uint32_t value );
 **
 ** NOTE:  assumes buf is large enough to hold the resulting string
 */
-int cvtoct( char *buf, uint32_t value );
+int cvtoct(char *buf, uint32_t value);
 
 /**
 ** bound(min,value,max)
@@ -296,7 +302,7 @@ int cvtoct( char *buf, uint32_t value );
 **
 ** @return The constrained value
 */
-uint32_t bound( uint32_t min, uint32_t value, uint32_t max );
+uint32_t bound(uint32_t min, uint32_t value, uint32_t max);
 
 /**
 ** Name:    put_char_or_code( ch )
@@ -307,7 +313,7 @@ uint32_t bound( uint32_t min, uint32_t value, uint32_t max );
 **
 ** @param ch    The character to be printed
 */
-void put_char_or_code( int ch );
+void put_char_or_code(int ch);
 
 /**
 ** Name:    backtrace
@@ -318,7 +324,7 @@ void put_char_or_code( int ch );
 ** @param ebp   Initial EBP to use
 ** @param args  Number of function argument values to print
 */
-void backtrace( uint32_t *ebp, uint_t args );
+void backtrace(uint32_t *ebp, uint_t args);
 
 /**
 ** Name:	kpanic
@@ -333,8 +339,8 @@ void backtrace( uint32_t *ebp, uint_t args );
 ** @param msg[in]  String containing a relevant message to be printed,
 **                 or NULL
 */
-void kpanic( const char *msg );
+void kpanic(const char *msg);
 
-#endif  /* !ASM_SRC */
+#endif /* !ASM_SRC */
 
 #endif

@@ -3,6 +3,8 @@
 #include "net/ethernet.h"
 #include "net/ipv4.h"
 #include "net/udp.h"
+#include <stdio.h>
+
 void test_udp_over_ip_over_ethernet() {
   uint8_t buffer[ETH_MAX_FRAME_SIZE] = {0};
 
@@ -41,11 +43,11 @@ void test_udp_over_ip_over_ethernet() {
   uint32_t eth_size = eth_serialize(&eth, buffer, sizeof(buffer));
 
   for (uint32_t i = 0; i < eth_size; i++) {
-    cio_printf("%02x ", buffer[i]);
+    printf("%02x ", buffer[i]);
     if ((i + 1) % 16 == 0)
-      cio_printf("\n");
+      printf("\n");
   }
-  cio_printf("\n");
+  printf("\n");
 }
 
 int main() {
