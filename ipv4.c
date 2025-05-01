@@ -1,5 +1,4 @@
 #include "net/ipv4.h"
-#include <stdio.h>
 #include <string.h>
 
 // Calculate IPv4 header checksum
