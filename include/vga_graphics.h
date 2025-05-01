@@ -206,4 +206,31 @@ void vga_delay_ms(uint32_t ms);
  */
 void vga_sleep_ms(uint32_t ms);
 
+/**
+ * @brief Draw a single ASCII character in graphics mode.
+ *
+ * Renders the 8×8 glyph for character c into the software backbuffer at (x,y).
+ * Uses font8x8.h for bitmap data. Call vga_render() to flush to screen.
+ *
+ * @param x     X pixel coordinate (0 <= x <= VGA_WIDTH - 8)
+ * @param y     Y pixel coordinate (0 <= y <= VGA_HEIGHT - 8)
+ * @param c     ASCII character to draw
+ * @param color Palette index (0–255) for drawing pixels
+ */
+void vga_draw_char(int x, int y, char c, uint8_t color);
+
+/**
+ * @brief Draw a null-terminated string in graphics mode.
+ *
+ * Renders each character at 8-pixel horizontal increments. Automatically
+ * wraps to next line if it exceeds VGA_WIDTH; does not scroll.
+ * Call vga_render() to flush.
+ *
+ * @param x     Starting X coordinate
+ * @param y     Starting Y coordinate
+ * @param str   Null-terminated C string
+ * @param color Palette index (0–255)
+ */
+void vga_draw_string(int x, int y, const char *str, uint8_t color);
+
 #endif // VGA_GRAPHICS_H_

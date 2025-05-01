@@ -2,6 +2,7 @@
 #include <clock.h> // for system_time, CLOCK_FREQ
 #include <lib.h>   // for umemcpy
 #include "vga_graphics.h"
+#include "font8x8.h"
 
 // -----------------------------------------------------------------------------
 // Port I/O helpers
@@ -260,5 +261,49 @@ void vga_blit(const uint8_t *sprite, int w, int h, int x0, int y0, uint8_t trans
                 vga_put_pixel_buf(xx, yy, p);
             }
         }
+    }
+}
+
+/**
+ * Draws a single character by reversing bit order so glyphs display correctly.
+ */
+void vga_draw_char(int x, int y, char c, uint8_t color)
+{
+    const uint8_t *glyph = font8x8_get(c);
+    for (int row = 0; row < 8; ++row)
+    {
+        uint8_t bits = glyph[row];
+        for (int col = 0; col < 8; ++col)
+        {
+            // reverse horizontal bit order: MSB maps to col=0
+            if (bits & (1 << (7 - col)))
+            {
+                vga_put_pixel_buf(x + col, y + row, color);
+            }
+        }
+    }
+}
+
+void vga_draw_string(int x, int y, const char *str, uint8_t color)
+{
+    int cx = x, cy = y;
+    while (*str)
+    {
+        if (*str == '\n')
+        {
+            cx = x;
+            cy += 8;
+        }
+        else
+        {
+            vga_draw_char(cx, cy, *str, color);
+            cx += 8;
+            if (cx + 8 > VGA_WIDTH)
+            {
+                cx = x;
+                cy += 8;
+            }
+        }
+        ++str;
     }
 }
