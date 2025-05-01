@@ -12,10 +12,13 @@
 # OS files
 #
 
+NET_C_SRC = ethernet.c ipv4.c udp.c
+NET_C_OBJ = ethernet.o ipv4.o udp.o
+
 OS_C_SRC = cio.c clock.c klibc.c kmem.c list.c main.c procs.c \
-	   sio.c support.c syscalls.c user.c
+	   sio.c support.c syscalls.c user.c $(NET_C_SRC)
 OS_C_OBJ = cio.o clock.o klibc.o kmem.o list.o main.o procs.o \
-	   sio.o support.o syscalls.o user.o
+	   sio.o support.o syscalls.o user.o $(NET_C_OBJ)
 
 OS_S_SRC = startup.o isrs.o
 OS_S_OBJ = startup.o isrs.o
@@ -363,6 +366,10 @@ qemu-nox-gdb: disk.img .gdbinit
 BuildImage:     BuildImage.c
 	@mkdir -p $(@D)
 	$(CC) -std=c99 -ggdb -o BuildImage BuildImage.c
+
+networktest: networktests.c
+	@echo "Compiling network stack..."
+	$(CC) -m32 -std=c99 -ggdb -I./include -DUSE_STDLIB_MEM_FUNCTIONS networktests.c ethernet.c ipv4.c udp.c -o networktest
 
 #
 # Offsets is compiled using -mx32 to force a 32-bit execution environment
