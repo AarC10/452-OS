@@ -1,47 +1,29 @@
-#include <stdint.h>
+#include "ipv4.h"
 #include <stdio.h>
 #include <string.h>
 
-#define MAX_IPV4_PAYLOAD_SIZE 1480
-
-// IPv4 Header structure
-typedef struct {
-  uint8_t version_ihl;     // Version (4 bits) + Internet Header Length (4 bits)
-  uint8_t dscp_ecn;        // DSCP (6 bits) + ECN (2 bits)
-  uint16_t total_length;   // Total Length
-  uint16_t identification; // Identification
-  uint16_t flags_fragment; // Flags (3 bits) + Fragment Offset (13 bits)
-  uint8_t ttl;             // Time to Live
-  uint8_t protocol;        // Protocol
-  uint16_t header_checksum;               // Header Checksum
-  uint32_t src_addr;                      // Source Address
-  uint32_t dest_addr;                     // Destination Address
-  uint8_t payload[MAX_IPV4_PAYLOAD_SIZE]; // Payload (variable length, MTU -
-                                          // IPv4 header)
-  uint32_t payload_len;                   // Current payload length
-} ipv4_packet_t;
-
+// Calculate IPv4 header checksum
 uint16_t ipv4_calculate_checksum(const uint8_t *header, uint32_t length) {
   uint32_t sum = 0;
   const uint16_t *ptr = (const uint16_t *)header;
 
-  // Sum all 16 bit words
+  // Sum all 16-bit words
   while (length > 1) {
     sum += *ptr++;
     length -= 2;
   }
 
-  // Add nay left-over bytes
+  // Add left-over byte, if any
   if (length > 0) {
     sum += *(const uint8_t *)ptr;
   }
 
-  // Fold sum to 16 bits
+  // Fold 32-bit sum to 16 bits
   while (sum >> 16) {
     sum = (sum & 0xFFFF) + (sum >> 16);
   }
 
-  // Take 1s complement
+  // Take one's complement
   return ~sum;
 }
 
@@ -51,7 +33,7 @@ void ipv4_init(ipv4_packet_t *packet, uint8_t dscp_ecn, uint16_t identification,
                uint8_t protocol, uint32_t src_addr, uint32_t dest_addr) {
   packet->version_ihl = 0x45; // Version 4, IHL 5 (5 * 4 = 20 bytes, no options)
   packet->dscp_ecn = dscp_ecn;
-  packet->total_length = 0; // set during init
+  packet->total_length = 0; // Will be set during serialization
   packet->identification = identification;
 
   // Combine flags (3 bits) and fragment offset (13 bits)
@@ -60,16 +42,17 @@ void ipv4_init(ipv4_packet_t *packet, uint8_t dscp_ecn, uint16_t identification,
 
   packet->ttl = ttl;
   packet->protocol = protocol;
-  packet->header_checksum = 0;
+  packet->header_checksum = 0; // Will be calculated during serialization
   packet->src_addr = src_addr;
   packet->dest_addr = dest_addr;
   packet->payload_len = 0;
 }
 
+// Set the payload for the IPv4 packet
 void ipv4_set_payload(ipv4_packet_t *packet, const uint8_t *payload,
                       uint32_t length) {
-  if (length > MAX_IPV4_PAYLOAD_SIZE) {
-    length = MAX_IPV4_PAYLOAD_SIZE;
+  if (length > IPV4_MAX_PAYLOAD) {
+    length = IPV4_MAX_PAYLOAD;
   }
 
   memcpy(packet->payload, payload, length);
@@ -79,8 +62,8 @@ void ipv4_set_payload(ipv4_packet_t *packet, const uint8_t *payload,
 // Serialize the IPv4 packet to a buffer
 uint32_t ipv4_serialize(const ipv4_packet_t *packet, uint8_t *buffer,
                         uint32_t buffer_size) {
-  uint32_t header_size =
-      20; // Standard IPv4 header size (5 * 4 = 20 bytes, no options)
+  uint32_t header_size = IPV4_HEADER_MIN_LEN; // Standard IPv4 header size (5 *
+                                              // 4 = 20 bytes, no options)
   uint32_t total_size = header_size + packet->payload_len;
 
   if (buffer_size < total_size) {
@@ -130,35 +113,3 @@ uint32_t ipv4_serialize(const ipv4_packet_t *packet, uint8_t *buffer,
 
   return total_size;
 }
-
-#ifdef IPV4_TEST
-int main() {
-  uint8_t test_payload[32];
-  for (int i = 0; i < 32; i++) {
-    test_payload[i] = i + 1;
-  }
-
-  ipv4_packet_t packet = {0};
-
-  // Source IP: 192.168.1.100, Destination IP: 192.168.1.1
-  uint32_t src_ip = (10 << 24) | (0 << 16) | (0 << 8) | 1;
-  uint32_t dest_ip = (10 << 24) | (0 << 16) | (0 << 8) | 2;
-
-  ipv4_init(&packet, 0, 1234, 2, 0, 64, 17, // 17 is UDP protocol
-            src_ip, dest_ip);
-
-  ipv4_set_payload(&packet, test_payload, sizeof(test_payload));
-
-  uint8_t buffer[1500] = {0};
-  uint32_t size = ipv4_serialize(&packet, buffer, sizeof(buffer));
-
-  for (uint32_t i = 0; i < size; i++) {
-    printf("%02x ", buffer[i]);
-    if ((i + 1) % 16 == 0)
-      printf("\n");
-  }
-  printf("\n");
-
-  return 0;
-}
-#endif
