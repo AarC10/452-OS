@@ -38,6 +38,8 @@
 #define	UA4_PORT		UA4_COM1_PORT
 #define UA5_PORT		UA4_COM1_PORT
 
+#define UA6_PORT        UA4_COM2_PORT
+
 /*
 ** Registers
 **
@@ -78,6 +80,9 @@
 */
 #define	UA4_TXD				(UA4_PORT+0)
 #	define	UA4_TX_DATA			UA4_TXD
+
+#define UA6_TXD             (UA6_PORT+0)
+#   define  UA6_TX_DATA         UA6_TXD
 
 /*
 ** Interrupt Enable Register
