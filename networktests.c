@@ -1,6 +1,6 @@
-#include "ethernet.h"
-#include "ipv4.h"
-#include "udp.h"
+#include "net/ethernet.h"
+#include "net/ipv4.h"
+#include "net/udp.h"
 #include <stdio.h>
 #include <string.h>
 
