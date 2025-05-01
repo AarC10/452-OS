@@ -369,7 +369,7 @@ static int mypadstr( int x, int y, char *str, int len, int width,
 static void do_printf( int x, int y, char **f ) {
 	char *fmt = *f;
 	int  *ap;
-	char buf[ 12 ];
+	char buf[ 64 ];
 	char ch;
 	char *str;
 	int  leftadjust;
@@ -461,6 +461,10 @@ static void do_printf( int x, int y, char **f ) {
 				x = mypadstr( x, y, buf, len, width, leftadjust, padchar );
 				break;
 
+			case 'b':
+				len = cvtbin( buf, *ap++ );
+				x = mypadstr( x, y, buf, len, width, leftadjust, padchar );
+				break;
 			}
 		} else {
 

@@ -270,6 +270,22 @@ int cvtdec( char *buf, int32_t value );
 int cvthex( char *buf, uint32_t value );
 
 /**
+** cvtbin(buf,value)
+**
+** convert a 32-bit unsigned value into a binary NUL-terminated
+** character string
+**
+** @param buf    Destination buffer
+** @param value  Value to convert
+**
+** @return The number of characters placed into the buffer
+**          (not including the NUL)
+**
+** NOTE:  assumes buf is large enough to hold the resulting string
+*/
+int cvtbin( char *buf, uint32_t value );
+
+/**
 ** cvtoct(buf,value)
 **
 ** convert a 32-bit unsigned value into a mininal-length (up to
@@ -284,6 +300,22 @@ int cvthex( char *buf, uint32_t value );
 ** NOTE:  assumes buf is large enough to hold the resulting string
 */
 int cvtoct( char *buf, uint32_t value );
+
+/**
+** itoa(num,str,base)
+**
+** converts an interger value to a null-terminated string using
+** the specified base and stores the result in the given array
+**
+** @param num	Value to convert
+** @param str	String buffer
+** @param base	Numerical base used to represent the value
+**
+** @return A pointer to the resulting null-terminated string
+**
+** NOTE:  assumes str is large enough to hold the resulting string
+*/
+char *itoa( int num, char *str, int base );
 
 /**
 ** bound(min,value,max)

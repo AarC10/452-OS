@@ -164,6 +164,34 @@ int cvthex( char *buf, uint32_t value ) {
 }
 
 /**
+** cvtbin(buf,value)
+**
+** convert a 32-bit unsigned value into a binary NUL-terminated
+** character string
+**
+** @param buf    Destination buffer
+** @param value  Value to convert
+**
+** @return The number of characters placed into the buffer
+**          (not including the NUL)
+**
+** NOTE:  assumes buf is large enough to hold the resulting string
+*/
+int cvtbin(char *buf, uint32_t value) {
+	int bits = sizeof(uint32_t) * 8;
+
+	for (int i = 0; i < bits; i++) {
+		uint32_t bit = value >> (bits - 1 - i) & 1;
+
+		*buf++ = (bit == 0) ? '0' : '1';
+	}
+
+	*buf = '\0';
+
+	return( bits );
+}
+
+/**
 ** cvtoct(buf,value)
 **
 ** convert a 32-bit unsigned value into a mininal-length (up to
@@ -243,6 +271,66 @@ char *cvtuns0( char *buf, uint32_t value ) {
 	}
 	*buf++ = value % 10 + '0';
 	return buf;
+}
+
+/**
+** itoa(num,str,base)
+**
+** converts an interger value to a null-terminated string using
+** the specified base and stores the result in the given array
+**
+** @param num	Value to convert
+** @param str	String buffer
+** @param base	Numerical base used to represent the value
+**
+** @return A pointer to the resulting null-terminated string
+**
+** NOTE:  assumes str is large enough to hold the resulting string
+**
+** Algorithm inspired from: https://geeksforgeeks.org/implement-itoa
+*/
+char *itoa( int num, char *str, int base ) {
+	int i = 0;
+
+	bool_t negative = false;
+
+	if (num == 0) {
+		str[i++] = '0';
+		str[i] = '\0';
+
+		return str;
+	}
+
+	if (num < 0 && base == 10) {
+		negative = true;
+		num = -num;
+	}
+
+	while (num != 0) {
+		int rem = num % base;
+
+		str[i++] = (rem > 9) ? (rem - 10) + 'a' : rem + '0';
+		num = num / base;
+	}
+
+	if (negative) str[i++] = '-';
+
+	str[i] = '\0';
+
+	int start = 0;
+	int end = i - 1;
+
+	while (start < end) {
+		char tmp = str[start];
+		
+		str[start] = str[end];
+		str[end] = tmp;
+
+		end--;
+		start++;
+	}
+
+	return str;
 }
 
 /**
