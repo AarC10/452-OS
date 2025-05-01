@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "vga_graphics.h": "c"
+        "vga_graphics.h": "c",
+        "common.h": "c",
+        "defs.h": "c"
     }
 }
