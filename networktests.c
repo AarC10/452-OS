@@ -1,9 +1,8 @@
+#include "cio.h"
+#include "klib.h"
 #include "net/ethernet.h"
 #include "net/ipv4.h"
 #include "net/udp.h"
-#include <stdio.h>
-#include <string.h>
-
 void test_udp_over_ip_over_ethernet() {
   uint8_t buffer[ETH_MAX_FRAME_SIZE] = {0};
 
@@ -41,15 +40,12 @@ void test_udp_over_ip_over_ethernet() {
 
   uint32_t eth_size = eth_serialize(&eth, buffer, sizeof(buffer));
 
-  printf("Complete UDP/IP/Ethernet packet size: %u bytes\n", eth_size);
-  printf("Buffer contents:\n");
-
   for (uint32_t i = 0; i < eth_size; i++) {
-    printf("%02x ", buffer[i]);
+    cio_printf("%02x ", buffer[i]);
     if ((i + 1) % 16 == 0)
-      printf("\n");
+      cio_printf("\n");
   }
-  printf("\n");
+  cio_printf("\n");
 }
 
 int main() {

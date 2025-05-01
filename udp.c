@@ -1,5 +1,5 @@
 #include "net/udp.h"
-#include <string.h>
+#include "klib.h"
 
 // Calculate UDP checksum (including IPv4 pseudo-header)
 uint16_t udp_calculate_checksum(const udp_packet_t *packet,

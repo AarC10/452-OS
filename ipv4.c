@@ -1,5 +1,5 @@
 #include "net/ipv4.h"
-#include <string.h>
+#include "klib.h"
 
 // Calculate IPv4 header checksum
 uint16_t ipv4_calculate_checksum(const uint8_t *header, uint32_t length) {
