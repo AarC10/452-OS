@@ -31,8 +31,11 @@ static proc_t in_spawn_table[] = {
 	// // color_test for vertical color bars
 	// PROCENT( color_test, PRIO_HIGH, "&", "color_test" ),
 
-	// drawing_test for various VGA drawing function testing
-	PROCENT( drawing_test, PRIO_HIGH, "&", "drawing_test" ),
+	// // drawing_test for various VGA drawing function testing
+	// PROCENT( drawing_test, PRIO_HIGH, "&", "drawing_test" ),
+
+	// sprite_test for testing drawing of sprites to the screen
+	PROCENT( sprite_test, PRIO_HIGH, "&", "sprite_test" ),
 
 	// a dummy entry to use as a sentinel
 	// { TBLEND }

@@ -84,6 +84,7 @@ USERMAIN(progI);   USERMAIN(progJ);   USERMAIN(progKL);     USERMAIN(progMN);
 USERMAIN(progO);   USERMAIN(progP);   USERMAIN(progQ);      USERMAIN(progR);
 USERMAIN(progS);   USERMAIN(progTUV); USERMAIN(progW);      USERMAIN(progX);
 USERMAIN(progY);   USERMAIN(progZ);   USERMAIN(color_test); USERMAIN(drawing_test);
+USERMAIN(sprite_test);
 
 #endif /* !ASM_SRC */
 
@@ -136,5 +137,6 @@ USERMAIN(progY);   USERMAIN(progZ);   USERMAIN(color_test); USERMAIN(drawing_tes
 #define SPAWN_V
 #define SPAWN_COLOR_TEST
 #define SPAWN_DRAWING_TEST
+#define SPAWN_SPRITE_TEST
 
 #endif
