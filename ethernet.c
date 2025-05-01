@@ -67,6 +67,7 @@ uint32_t eth_serialize(const eth_frame_t *frame, uint8_t *buffer,
   return total_len;
 }
 
+#ifdef ETH_TEST
 int main() {
   // Sample MAC addresses
   uint8_t src_mac[6] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
@@ -96,3 +97,4 @@ int main() {
 
   return 0;
 }
+#endif

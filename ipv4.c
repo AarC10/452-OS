@@ -131,6 +131,7 @@ uint32_t ipv4_serialize(const ipv4_packet_t *packet, uint8_t *buffer,
   return total_size;
 }
 
+#ifdef IPV4_TEST
 int main() {
   uint8_t test_payload[32];
   for (int i = 0; i < 32; i++) {
@@ -160,3 +161,4 @@ int main() {
 
   return 0;
 }
+#endif
