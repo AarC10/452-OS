@@ -56,12 +56,14 @@ static void clk_isr( int vector, int code ) {
 
 	// spin the pinwheel
 
+#if defined(DISPLAY_PINWHEEL)
 	++pinwheel;
 	if( pinwheel == (CLOCK_FREQ / 10) ) {
 		pinwheel = 0;
 		++pindex;
 		cio_putchar_at( 0, 0, "|/-\\"[ pindex & 3 ] );
 	}
+#endif
 
 #if defined(SYSTEM_STATUS)
 	// Periodically, dump the queue lengths and the SIO status (along
