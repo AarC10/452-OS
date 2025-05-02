@@ -1,7 +1,7 @@
 #ifndef ETHERNET_H
 #define ETHERNET_H
 
-#include "types.h"
+#include "include/types.h"
 
 // Ethernet Constants
 #define ETH_ADDR_LEN 6     // MAC address length in bytes

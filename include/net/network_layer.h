@@ -1,9 +1,9 @@
 #ifndef NETWORK_LAYER_H
 #define NETWORK_LAYER_H
 
-#include "net/ethernet.h"
-#include "net/ipv4.h"
-#include "net/udp.h"
+#include "include/net/ethernet.h"
+#include "include/net/ipv4.h"
+#include "include/net/udp.h"
 #include "types.h"
 
 // Network Layer Interface

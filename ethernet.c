@@ -1,4 +1,4 @@
-#include "net/ethernet.h"
+#include <net/ethernet.h>
 
 void eth_init(eth_frame_t *frame, const uint8_t *dest_mac,
               const uint8_t *src_mac, uint16_t ethertype) {
