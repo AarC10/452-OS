@@ -1,7 +1,8 @@
-#include <drivers/intel_8255x.h>
+#include <drivers/intel8255x.h>
 #include <types.h>
+#include <drivers/intel8255x_ops.h>
 
-int i8255x_init(uint32_t pci_bar, bool is_io) { return -1; }
+int i8255x_init(uint32_t pci_bar, bool_t is_io) { return -1; }
 
 int i8255x_transmit(const uint8_t *frame, uint16_t len) { return -1; }
 

@@ -3,7 +3,7 @@
 
 #include <types.h>
 
-int i8255x_init(uint32_t pci_bar, bool is_io);
+int i8255x_init(uint32_t pci_bar, bool_t is_io);
 
 int i8255x_transmit(const uint8_t *frame, uint16_t len);
 
