@@ -24,6 +24,7 @@
 */
 
 #define KERNEL_SRC
+#define SIO_OVERRIDE
 
 #include <cio.h>
 #include <lib.h>
@@ -33,7 +34,7 @@
 #include <x86/ops.h>
 #include <x86/vga.h>
 
-#ifdef CIO_DUP2_SIO
+#if defined(CIO_DUP2_SIO) || defined(SIO_OVERRIDE)
 #include <sio.h>
 
 // duplicate all non-scrolling-region console output to SIO -- will
@@ -99,6 +100,7 @@ static void setcursor( void ) {
 ** putchar_at: physical output to the video memory
 */
 static void putchar_at( unsigned int x, unsigned int y, unsigned int c ) {
+#ifndef SIO_OVERRIDE
 	/*
 	** If x or y is too big or small, don't do any output.
 	*/
@@ -131,6 +133,16 @@ static void putchar_at( unsigned int x, unsigned int y, unsigned int c ) {
 		}
 #endif
 	}
+#else
+    unsigned char ch = c & 0xFF;
+    if (ch >= ' ' && ch < 0x7f) {
+        sio_writec(ch);
+    } else {
+        char buf[4];
+        sprint(buf, "\\x%02x", ch);
+        sio_write(buf, 4);
+    }
+#endif // SIO_OVERRIDE
 }
 
 /*
@@ -195,6 +207,7 @@ void cio_putchar_at( unsigned int x, unsigned int y, unsigned int c ) {
 #define cio_putchar   putchar
 #else
 void cio_putchar( unsigned int c ) {
+#ifndef SIO_OVERRIDE
 	/*
 	** If we're off the bottom of the screen, scroll the window.
 	*/
@@ -231,6 +244,9 @@ void cio_putchar( unsigned int c ) {
 		break;
 	}
 	setcursor();
+#else
+    putchar_at(0, 0, c);
+#endif // SIO_OVERRIDE
 }
 #endif
 
