@@ -37,8 +37,11 @@ static proc_t in_spawn_table[] = {
 	// // sprite_test for testing drawing of sprites to the screen
 	// PROCENT( sprite_test, PRIO_HIGH, "&", "sprite_test" ),
 
-	// vga_type for testing keyboard input and printing text
-	PROCENT( vga_type, PRIO_HIGH, "&", "vga_type" ),
+	// // vga_type for testing keyboard input and printing text
+	// PROCENT( vga_type, PRIO_HIGH, "&", "vga_type" ),
+
+	// snake for playing snake game
+	PROCENT( snake, PRIO_HIGH, "&", "snake" ),
 
 	// a dummy entry to use as a sentinel
 	// { TBLEND }

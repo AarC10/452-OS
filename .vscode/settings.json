@@ -2,6 +2,7 @@
     "files.associations": {
         "vga_graphics.h": "c",
         "common.h": "c",
-        "defs.h": "c"
+        "defs.h": "c",
+        "random": "c"
     }
 }
