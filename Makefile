@@ -19,9 +19,9 @@ DRIVER_C_SRC = intel8255x.c intel8255x_ops.c
 DRIVER_C_OBJ = intel8255x.o intel8255x_ops.o
 
 OS_C_SRC = cio.c clock.c klibc.c kmem.c list.c main.c procs.c \
-	   sio.c support.c syscalls.c user.c $(NET_C_SRC) $(DRIVER_C_SRC)
+	   sio.c support.c syscalls.c user.c pci.c $(NET_C_SRC) $(DRIVER_C_SRC)
 OS_C_OBJ = cio.o clock.o klibc.o kmem.o list.o main.o procs.o \
-	   sio.o support.o syscalls.o user.o $(NET_C_OBJ) $(DRIVER_C_OBJ)
+	   sio.o support.o syscalls.o user.o pci.o $(NET_C_OBJ) $(DRIVER_C_OBJ)
 
 OS_S_SRC = startup.o isrs.o
 OS_S_OBJ = startup.o isrs.o
