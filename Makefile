@@ -210,7 +210,7 @@ QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 # run 'make' with -DQEMUEXTRA=xxx to add option 'xxx' when QEMU is run
 #
 # does not include a '-serial' option, as that may or may not be needed
-QEMUOPTS = -drive file=disk.img,index=0,media=disk,format=raw $(QEMUEXTRA)
+QEMUOPTS = -drive file=disk.img,index=0,media=disk,format=raw -netdev user,id=net0 -net nic,model=i82557b,netdev=net0 $(QEMUEXTRA)
 
 ##########################
 #  TRANSFORMATION RULES  #
