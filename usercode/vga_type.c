@@ -5,8 +5,6 @@
 #include <cio.h>
 #include "vga_graphics.h"
 
-#define TEXT_COLOR 15
-
 USERMAIN(vga_type)
 {
     vga_clear_buf(0);
@@ -31,7 +29,7 @@ USERMAIN(vga_type)
         }
         else
         {
-            vga_draw_char(cursor_x, cursor_y, (char)ch, TEXT_COLOR);
+            vga_draw_char(cursor_x, cursor_y, (char)ch, VGA_COLOR_GREEN);
             cursor_x += 8;
             if (cursor_x + 8 > VGA_WIDTH)
             {
