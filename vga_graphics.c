@@ -216,7 +216,7 @@ void vga_set_palette_color(uint8_t index, uint8_t r, uint8_t g, uint8_t b)
 // Software double-buffering
 // -----------------------------------------------------------------------------
 
-static uint8_t vga_backbuffer[VGA_WIDTH * VGA_HEIGHT];
+static uint8_t vga_backbuffer[VGA_VRAM_SIZE];
 
 void vga_put_pixel_buf(int x, int y, uint8_t color)
 {
@@ -226,9 +226,51 @@ void vga_put_pixel_buf(int x, int y, uint8_t color)
     }
 }
 
+void vga_draw_rect_buf(int x, int y, int w, int h, uint8_t color, int filled)
+{
+    if (filled)
+    {
+        for (int yy = y; yy < y + h; ++yy)
+        {
+            if (yy < 0 || yy >= VGA_HEIGHT)
+                continue;
+            for (int xx = x; xx < x + w; ++xx)
+            {
+                if (xx < 0 || xx >= VGA_WIDTH)
+                    continue;
+                vga_backbuffer[yy * VGA_WIDTH + xx] = color;
+            }
+        }
+    }
+    else
+    {
+        // top & bottom edges
+        for (int xx = x; xx < x + w; ++xx)
+        {
+            if (xx < 0 || xx >= VGA_WIDTH)
+                continue;
+            if (y >= 0 && y < VGA_HEIGHT)
+                vga_backbuffer[y * VGA_WIDTH + xx] = color;
+            if (y + h - 1 >= 0 && y + h - 1 < VGA_HEIGHT)
+                vga_backbuffer[(y + h - 1) * VGA_WIDTH + xx] = color;
+        }
+        // left & right edges
+        for (int yy = y; yy < y + h; ++yy)
+        {
+            if (yy < 0 || yy >= VGA_HEIGHT)
+                continue;
+            if (x >= 0 && x < VGA_WIDTH)
+                vga_backbuffer[yy * VGA_WIDTH + x] = color;
+            if (x + w - 1 >= 0 && x + w - 1 < VGA_WIDTH)
+                vga_backbuffer[yy * VGA_WIDTH + x + w - 1] = color;
+        }
+    }
+}
+
 void vga_clear_buf(uint8_t color)
 {
-    for (int i = 0; i < VGA_WIDTH * VGA_HEIGHT; ++i)
+    // clear the entire VGA page
+    for (int i = 0; i < VGA_VRAM_SIZE; ++i)
     {
         vga_backbuffer[i] = color;
     }
@@ -236,7 +278,8 @@ void vga_clear_buf(uint8_t color)
 
 void vga_render(void)
 {
-    umemcpy((void *)VGA_ADDRESS, vga_backbuffer, VGA_WIDTH * VGA_HEIGHT);
+    // copy the entire 64 KiB to video RAM
+    umemcpy((void *)VGA_ADDRESS, vga_backbuffer, VGA_VRAM_SIZE);
 }
 
 // -----------------------------------------------------------------------------

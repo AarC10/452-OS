@@ -20,6 +20,31 @@
 #define VGA_ADDRESS ((uint8_t *)0xA0000)
 /// Approximate display refresh rate for delay calculations
 #define VGA_REFRESH_HZ 60
+/// 320*200 = 64000 bytes
+#define VGA_BYTES  (VGA_WIDTH * VGA_HEIGHT)
+/// Number of bytes in the VGA frame buffer (mode 13h is 64 KiB)
+#define VGA_VRAM_SIZE  0x10000
+
+// -----------------------------------------------------------------------------
+// VGA Color Definitions
+// -----------------------------------------------------------------------------
+
+#define VGA_COLOR_BLACK          0  ///< Black
+#define VGA_COLOR_BLUE           1  ///< Blue
+#define VGA_COLOR_GREEN          2  ///< Green
+#define VGA_COLOR_CYAN           3  ///< Cyan
+#define VGA_COLOR_RED            4  ///< Red
+#define VGA_COLOR_MAGENTA        5  ///< Magenta
+#define VGA_COLOR_BROWN          6  ///< Brown (dark yellow)
+#define VGA_COLOR_LIGHT_GREY     7  ///< Light gray
+#define VGA_COLOR_DARK_GREY      8  ///< Dark gray
+#define VGA_COLOR_LIGHT_BLUE     9  ///< Light blue
+#define VGA_COLOR_LIGHT_GREEN   10  ///< Light green
+#define VGA_COLOR_LIGHT_CYAN    11  ///< Light cyan
+#define VGA_COLOR_LIGHT_RED     12  ///< Light red
+#define VGA_COLOR_LIGHT_MAGENTA 13  ///< Light magenta
+#define VGA_COLOR_YELLOW        14  ///< Yellow
+#define VGA_COLOR_WHITE         15  ///< White
 
 // -----------------------------------------------------------------------------
 // Basic drawing primitives
@@ -132,18 +157,34 @@ void vga_set_palette_color(uint8_t index, uint8_t r, uint8_t g, uint8_t b);
 void vga_put_pixel_buf(int x, int y, uint8_t color);
 
 /**
- * @brief Clear the backbuffer.
+ * @brief Draw a rectangle into the backbuffer (no VRAM writes).
  *
- * Fills the entire backbuffer with the given color.
+ * Just like vga_draw_rect, but writes into the off-screen buffer so
+ * that a subsequent vga_render() will show it.
  *
- * @param color Palette index to fill the backbuffer
+ * @param x      Left coordinate (pixels)
+ * @param y      Top  coordinate (pixels)
+ * @param w      Width  (pixels)
+ * @param h      Height (pixels)
+ * @param color  Palette index (0–255)
+ * @param filled If non-zero, fill; else only outline
+ */
+void vga_draw_rect_buf(int x, int y, int w, int h, uint8_t color, int filled);
+
+/**
+ * @brief Clear the software backbuffer to a single color.
+ *
+ * Fills all VGA_VRAM_SIZE entries so that vga_render() overwrites
+ * *every* byte in the 64 KiB VGA page.
+ *
+ * @param color Palette index (0–255).
  */
 void vga_clear_buf(uint8_t color);
 
 /**
- * @brief Copy the backbuffer to video memory.
+ * @brief Render the backbuffer to video memory.
  *
- * Flushes the entire off-screen buffer into VGA memory in one block.
+ * Copies all VGA_VRAM_SIZE bytes from the backbuffer into VGA memory.
  */
 void vga_render(void);
 

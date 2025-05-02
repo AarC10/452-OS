@@ -289,6 +289,13 @@ int cio_gets( char *buffer, unsigned int size );
 ** @return number of characters in the input queue
 */
 int cio_input_queue( void );
+
+/**
+ * @brief  Test if a character is waiting in the CIO input buffer.
+ * @return Non-zero if cio_getchar() would return immediately.
+ */
+int  cio_kbhit(void);
+
 #endif  /* !ASM_SRC */
 
 #endif

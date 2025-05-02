@@ -786,3 +786,8 @@ int main() {
 
 int curr_x, curr_y, max_x, max_y;
 #endif
+
+int cio_kbhit(void)
+{
+    return (next_char != next_space);
+}
