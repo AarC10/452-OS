@@ -13,9 +13,9 @@
 #
 
 OS_C_SRC = cio.c clock.c klibc.c kmem.c list.c main.c procs.c \
-	   sio.c support.c syscalls.c user.c pci.c
+	   sio.c support.c syscalls.c user.c pci.c hda.c
 OS_C_OBJ = cio.o clock.o klibc.o kmem.o list.o main.o procs.o \
-	   sio.o support.o syscalls.o user.o pci.o
+	   sio.o support.o syscalls.o user.o pci.o hda.o
 
 OS_S_SRC = startup.o isrs.o
 OS_S_OBJ = startup.o isrs.o
@@ -204,7 +204,7 @@ QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 # run 'make' with -DQEMUEXTRA=xxx to add option 'xxx' when QEMU is run
 #
 # does not include a '-serial' option, as that may or may not be needed
-QEMUOPTS = -drive file=disk.img,index=0,media=disk,format=raw $(QEMUEXTRA)
+QEMUOPTS = -drive file=disk.img,index=0,media=disk,format=raw -device intel-hda -device hda-output $(QEMUEXTRA)
 
 ##########################
 #  TRANSFORMATION RULES  #

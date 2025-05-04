@@ -21,6 +21,8 @@
 // #include <userids.h>
 #include <vm.h>
 
+#include <hda.h>
+
 /*
 ** PRIVATE DEFINITIONS
 */
@@ -418,6 +420,8 @@ int main( void ) {
 
 	sio_flush( SIO_RX | SIO_TX );
 	sio_enable( SIO_RX );
+
+	hda_init();
 
 	cio_puts( "System initialization complete.\n" );
 	cio_puts( "-------------------------------\n" );
