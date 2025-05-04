@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "common.h": "c",
+        "lib.h": "c",
+        "ulib.h": "c",
+        "cio.h": "c",
+        "support.h": "c",
+        "klib.h": "c",
+        "functional": "c",
+        "random": "c"
+    }
+}

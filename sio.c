@@ -332,6 +332,9 @@ void sio_init( void ) {
 	*/
 
 	outb( UA4_IER, 0 );
+
+	outb( UA4_PORT2_IER, 0 );
+
 	ier = 0;
 
 	/*
@@ -342,12 +345,18 @@ void sio_init( void ) {
 	outb( UA4_DLL, BAUD_LOW_BYTE( DL_BAUD_9600 ) );
 	outb( UA4_DLM, BAUD_HIGH_BYTE( DL_BAUD_9600 ) );
 
+	outb( UA4_PORT2_LCR, UA4_LCR_DLAB );
+	outb( UA4_PORT2_DLL, BAUD_LOW_BYTE( DL_BAUD_115200 ) );
+	outb( UA4_PORT2_DLM, BAUD_HIGH_BYTE( DL_BAUD_115200 ) );
+
 	/*
 	** deselect the latch registers, by setting the data
 	** characteristics in the LCR
 	*/
 
 	outb( UA4_LCR, UA4_LCR_WLS_8 | UA4_LCR_1_STOP_BIT | UA4_LCR_NO_PARITY );
+
+	outb( UA4_PORT2_LCR, UA4_LCR_WLS_8 | UA4_LCR_NO_PARITY );
 	
 	/*
 	** Set the ISEN bit to enable the interrupt request signal,
@@ -592,26 +601,31 @@ void sio_dmx( int port, uint8_t data[DMX_SLOTS] ) {
 		- At 115.2 kbaud, each bit is ~8.4usec (DMX standard is 4usec)
 		- Bits go from LSB to MSB (0b100 shows up as 0b001)
 		- Start procedure: "SPACE" for BREAK, "MARK" after BREAK, START Code
+		- Assume 1 bit (at 115.2 kbaud) is recieved by the end device as 
+		  2 bits (aka reading at 250 kbaud)
 	*/
 
-	// DMX Reset Procedure
-	for (int i = 0; i < 2; i++) {
-		outb(port, NULL); // "SPACE" for BREAK (>92usec)
-	}
-
-	outb(port, 0b01000011);
+	char start_code[] = "1100001";
 	/*
-		0b0 1 0000 11
-		            ^->"MARK" after BREAK (>8usec)
-				^->START Code (all 0s)
-		    ^->Stop bits (x2 HIGH bits)
+		11 0000 1
+				^->Stop bits (x2 HIGH bits)
+		    ^->START Code (all 0s)
+		^->"MARK" after BREAK (>8usec)
 	*/
+
+	int offset = sizeof(start_code) / sizeof(start_code[0]);
 
 	// Builds an array of complete DMX frames
-	char bits[DMX_SLOTS * DMX_FRAME_SIZE];
+	uint8_t bits[DMX_SLOTS * DMX_FRAME_SIZE + offset];
 
+	// Build start code frame
+	for (int i = 0; i < offset; i++) {
+		bits[i] = start_code[i] == '1' ? 1 : 0;
+	}
+
+	// Build data frames
 	for (int i = 0; i < DMX_SLOTS; i++) {
-		int base = i * DMX_FRAME_SIZE + 1;
+		int base = offset + i * DMX_FRAME_SIZE + 1;
 
 		bits[base - 1] = 0; // Start bit
 		
@@ -626,8 +640,12 @@ void sio_dmx( int port, uint8_t data[DMX_SLOTS] ) {
 		}
 	}
 
-	// Send out data from LSB to MSB
-	for (int i = 0; i < sizeof(bits) / sizeof(bits[0]) / 8; i++) {
+	int chunks = sizeof(bits) / sizeof(bits[0]) / 8;
+
+	uint8_t buffer[chunks];
+
+	// Change bit stream to be chunks from LSB to MSB
+	for (int i = 0; i < chunks; i++) {
 		int base = i * 8;
 
 		uint8_t byte = 0;
@@ -638,17 +656,17 @@ void sio_dmx( int port, uint8_t data[DMX_SLOTS] ) {
 			byte |= bits[base + bit];
 		}
 
-		for (int i = 0; i < 8; i++) {
-			cio_printf("%d ", bits[base + i]);
-		}
+		buffer[i] = byte;
+	}
 
-		outb(port, byte);
+	// DMX Reset Procedure
+	for (int i = 0; i < 2; i++) {
+		outb(port, NULL); // "SPACE" for BREAK (>92usec)
+	}
 
-		char binary[9];
-
-		itoa(byte, binary, 2);
-
-		cio_printf("\n%d-%08s\n", byte, binary);
+	// Send data to serial device
+	for (int i = 0; i < chunks; i++) {
+		outb(port, buffer[i]);
 	}
 }
 

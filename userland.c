@@ -117,4 +117,4 @@ typedef struct proc_s {
 #include <usercode/progW.c>
 #endif
 
-#include <usercode/serialTest.c>
+#include <usercode/dmxTest.c>

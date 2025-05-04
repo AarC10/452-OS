@@ -85,7 +85,7 @@ USERMAIN(progO);   USERMAIN(progP);   USERMAIN(progQ);  USERMAIN(progR);
 USERMAIN(progS);   USERMAIN(progTUV); USERMAIN(progW);  USERMAIN(progX);
 USERMAIN(progY);   USERMAIN(progZ);
 
-USERMAIN(serialTest);
+USERMAIN(dmxTest);
 
 #endif /* !ASM_SRC */
 

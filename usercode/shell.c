@@ -123,7 +123,7 @@ static proc_t sh_spawn_table[] = {
 	PROCENT( progTUV, PRIO_STD, "V", "userV", "V", "6", "k" ),
 #endif
 
-	PROCENT(serialTest, PRIO_STD, "W", "test"),
+	PROCENT(dmxTest, PRIO_STD, "W", "test"),
 
 	// a dummy entry to use as a sentinel
 	// { TBLEND }
