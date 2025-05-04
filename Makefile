@@ -407,7 +407,7 @@ include/offsets.h:	Offsets
 #
 
 clean:
-	rm -f *.nl *.nll *.lst *.asm *.sym *.b *.i *.o *.X *.dis *.hex
+	rm -f *.nl *.nll *.lst *.asm *.sym *.b *.i *.o *.X *.dis *.hex *.d
 
 realclean:	clean
 	rm -f kernel *.img *.map BuildImage Offsets
