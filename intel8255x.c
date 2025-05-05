@@ -1,9 +1,12 @@
-#include <drivers/intel8255x.h>
-#include <types.h>
-#include <drivers/intel8255x_ops.h>
-#include <x86/pci.h>
-#include <kmem.h>
 #include <common.h>
+#include <drivers/intel8255x.h>
+#include <cio.h>
+#include <drivers/intel8255x_ops.h>
+#include <kmem.h>
+#include <types.h>
+#include <x86/pci.h>
+#include "support.h"
+#include "klib.h"
 
 #define PCI_BASE_ADDR_SPACE_MASK 0xffff
 #define PCI_BASE_ADDR_MEM_MASK (1 << 17)
@@ -24,8 +27,10 @@ static void write_reg(i8255x *dev, uint32_t offset, uint32_t value) {
 static uint32_t get_mmio_addr(struct pci_func *pcif) {
     for (int i = 0; i < 6; i++) {
         uint32_t bar = pcif->base_addr[i];
-        if (bar == 0 || (bar & PCI_BAR_IO_MASK)) continue;
-        return bar & ~0xFULL; // Oops did I forget to mask?
+        if (bar == 0 || (bar & PCI_BAR_IO_MASK)) {
+            continue;
+        }
+        return bar & ~0xFULL;  // Oops did I forget to mask?
     }
     return 0;
 }
@@ -77,7 +82,8 @@ static void i8255x_init_tx(i8255x *dev) {
     // Expecting we aren't using the virtual addr space in this OS right now
     // Can ignore V2P functions here. Causes some weird compile issues when
     // including vm.h
-    uint64_t base = (uint64_t)(dev->tx_ring);
+    uint32_t base = (uint32_t)(dev->tx_ring);
+    (void) base; // TODO: Rest of the code
 }
 
 static void i8255x_init_rx(i8255x *dev) {
@@ -85,11 +91,12 @@ static void i8255x_init_rx(i8255x *dev) {
         memset(&dev->rx_ring[i], 0, sizeof(i8255x_rx_desc));
     }
 
-    uint64_t base = (uint64_t)(dev->rx_ring);
+    uint32_t base = (uint32_t)(dev->rx_ring);
+    (void) base; // TODO: Rest of the code
 }
 
-int i8255x_init() {
-    struct pci_func *pcif = (struct pci_func *) km_slice_alloc();
+int i8255x_init(void) {
+    struct pci_func *pcif = (struct pci_func *)km_slice_alloc();
     if (!pcif) {
         cio_puts("km_slice_alloc failed for network pcif\n");
         return -1;
@@ -105,7 +112,7 @@ int i8255x_init() {
     }
 
     pci_func_enable(pcif);
-    i8255x *dev = (struct i8255x *)km_slice_alloc();
+    i8255x *dev = (i8255x *)km_slice_alloc();
     dev->mmio_base = get_mmio_addr(pcif);
     cio_printf("mmio_base=0x%08x\n", dev->mmio_base);
 
@@ -119,16 +126,14 @@ int i8255x_init() {
     }
 
     write_reg(dev, I8255X_CTL, I8255X_CTL_RST);
-    delay(DELAY_1_SEC);
+    delay(DELAY_10_SEC);
 
     // Read HW address from EEPROM
     get_mac_addr(dev, dev->addr);
 
-
     cio_printf("MAC addr=%02x:%02x:%02x:%02x:%02x:%02x\n", dev->addr[0],
-            dev->addr[1], dev->addr[2], dev->addr[3], dev->addr[4],
-            dev->addr[5]);
-
+               dev->addr[1], dev->addr[2], dev->addr[3], dev->addr[4],
+               dev->addr[5]);
 
     // //APIC
     // dev->irq = pcif->irq_line;
@@ -149,5 +154,3 @@ int i8255x_init() {
 int i8255x_transmit(const uint8_t *frame, uint16_t len) { return -1; }
 
 int i8255x_receive(uint8_t *buf, uint16_t bufsize) { return -1; }
-
-void i8255x_get_mac(uint8_t mac_out[6]) {}
