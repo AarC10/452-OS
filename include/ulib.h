@@ -14,6 +14,8 @@
 
 #include <common.h>
 
+#include <dmx.h>
+
 /*
 ** General (C and/or assembly) definitions
 */
@@ -199,6 +201,22 @@ void usprint( char *dst, char *fmt, ... );
 ** CONVERSION FUNCTIONS
 **********************************************
 */
+
+/**
+** itoa(num,str,base)
+**
+** converts an interger value to a null-terminated string using
+** the specified base and stores the result in the given array
+**
+** @param num	Value to convert
+** @param str	String buffer
+** @param base	Numerical base used to represent the value
+**
+** @return A pointer to the resulting null-terminated string
+**
+** NOTE:  assumes str is large enough to hold the resulting string
+*/
+char *itoa( int num, char *str, int base );
 
 /**
 ** cvtuns0(buf,value) - local support routine for cvtuns()
@@ -466,6 +484,16 @@ int sleep( uint32_t ms );
 ** Does not return.
 */
 void bogus( void );
+
+/**
+** dmxwrite(uint_t port, uint8_t data[DMX_SLOTS]) 0 writes DMX frame to port
+**
+** @param port	The port to write to
+** @param data	The DMX frame data to write
+**
+** @return	0 if written successfully, otherwise an error code results
+*/
+int dmxwrite( uint_t port, uint8_t data[DMX_SLOTS] );
 
 /*
 *************************************************

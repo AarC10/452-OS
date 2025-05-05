@@ -19,6 +19,7 @@
 #include <kmem.h>
 #include <vm.h>
 #include <x86/pic.h>
+#include <dmx.h>
 
 /*
 ** PRIVATE DEFINITIONS
@@ -814,6 +815,34 @@ SYSIMPL(sleep) {
 	}
 }
 
+
+/**
+** sys_dmxwrite - write DMX data to the specified serial prot
+**
+** Implements:
+**		int dmxwrite( uint_t port, uint8_t data[DMX_SLOTS] );
+**
+** Sends the given frame out of the specified port, returns
+** 0 on success, otherwise an error code is given
+*/
+SYSIMPL(dmxwrite) {
+	// sanity check
+	assert( pcb != NULL );
+
+	SYSCALL_ENTER( pcb->pid );
+
+	// grab the parameters
+	uint_t port = ARG(pcb,1);
+
+	uint8_t *data = (uint8_t *) ARG(pcb,2);
+
+	dmx_write(port, data);
+
+	SYSCALL_EXIT(0);
+	return;
+}
+
+
 /*
 ** PRIVATE FUNCTIONS GLOBAL VARIABLES
 */
@@ -840,7 +869,8 @@ static void (* const syscalls[N_SYSCALLS])( pcb_t * ) = {
 	[ SYS_getprio ] = sys_getprio,
 	[ SYS_setprio ] = sys_setprio,
 	[ SYS_kill ]    = sys_kill,
-	[ SYS_sleep ]   = sys_sleep
+	[ SYS_sleep ]   = sys_sleep,
+	[ SYS_dmxwrite ] = sys_dmxwrite
 };
 
 /**

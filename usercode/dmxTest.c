@@ -1,9 +1,9 @@
 #ifndef UDMXTEST_INC_C_
 #define UDMXTEST_INC_C_
+
 #include <common.h>
-#include <sio.h>
-#include <cio.h>
-#include <klib.h>
+#include <dmx.h>
+#include <lib.h>
 
 USERMAIN(dmxTest) {
 	cwrites("Running DMX channel check!\n");
@@ -26,10 +26,13 @@ USERMAIN(dmxTest) {
 
 			itoa(i, binary, 2);
 
-			cio_printf("Channel: %d (%08s)\n", i + 1, binary);			
+			char str_buffer[120];
+
+			usprint(str_buffer, "Channel: %d (%08s)\n", i + 1, binary);
+			cwrites(str_buffer);
 
 			for (int i = 0; i < 5; i++) {
-				sio_dmx(0x2f8, data);
+				dmxwrite(DMX_PORT1, data);
 				sleep(70);
 			}
 

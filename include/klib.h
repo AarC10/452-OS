@@ -302,22 +302,6 @@ int cvtbin( char *buf, uint32_t value );
 int cvtoct( char *buf, uint32_t value );
 
 /**
-** itoa(num,str,base)
-**
-** converts an interger value to a null-terminated string using
-** the specified base and stores the result in the given array
-**
-** @param num	Value to convert
-** @param str	String buffer
-** @param base	Numerical base used to represent the value
-**
-** @return A pointer to the resulting null-terminated string
-**
-** NOTE:  assumes str is large enough to hold the resulting string
-*/
-char *itoa( int num, char *str, int base );
-
-/**
 ** bound(min,value,max)
 **
 ** This function confines an argument within specified bounds.
