@@ -16,13 +16,22 @@ static void write_reg(i8255x *dev, uint32_t offset, uint32_t value) {
     *(volatile uint32_t *)(dev->mmio_base + offset) = value;
 }
 
+// BAR bit-0 == 1 means I/O space; == 0 means memory space
+#define PCI_BAR_IO_MASK 0x1
+
+// mask bottom 4 flag bits of a mem BAR (bits 0–3)
+#define PCI_BAR_MEM_MASK (~0xFULL)
 static uint32_t get_mmio_addr(struct pci_func *pcif) {
     uint32_t mmio_base = 0;
     for (int i = 0; i < 6; i++) {
-        if (pcif->base_addr[i] & PCI_BASE_ADDR_SPACE_MASK) {
-            mmio_base = pcif->base_addr[i] & PCI_BASE_ADDR_MEM_MASK;
-            break;
-        }
+        uint32_t bar = pcif->base_addr[i];
+        // skip empty BARs
+        if (bar == 0) continue;
+        // skip I/O‐space BARs
+        if (bar & PCI_BAR_IO_MASK) continue;
+        // this is a memory BAR, mask off the low flags:
+        mmio_base = bar & PCI_BAR_MEM_MASK;
+        break;
     }
     return mmio_base;
 }
