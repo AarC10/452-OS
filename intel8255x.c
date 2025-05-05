@@ -27,6 +27,24 @@ static uint32_t get_mmio_addr(struct pci_func *pcif) {
     return mmio_base;
 }
 
+static uint16_t eeprom_read(i8255x *dev, uint8_t addr) {
+    uint32_t data = 0;
+    write_reg(dev, I8255X_EERD, I8255X_EERD_READ | addr << I8255X_EERD_ADDR);
+    while (!((data = read_reg(dev, I8255X_EERD)) & I8255X_EERD_DONE)) {
+        __asm__ __volatile__("pause");
+    }
+    return (uint16_t)(data >> I8255X_EERD_DATA);
+}
+
+static void get_mac_addr(i8255x *dev, uint8_t mac[6]) {
+    uint16_t res = 0;
+    for (int i = 0; i < 3; i++) {
+        res = eeprom_read(dev, i);
+        mac[i * 2] = (res >> 8) & 0xFF;
+        mac[i * 2 + 1] = res & 0xFF;
+    }
+}
+
 static void i8255x_init_tx(i8255x *dev) {
     for (int i = 0; i < I8255X_TX_RING_SIZE; i++) {
         memset(&dev->tx_ring[i], 0, sizeof(i8255x_tx_desc));
@@ -61,7 +79,7 @@ int i8255x_init(uint32_t pci_bar, bool_t is_io) {
 
     pci_func_enable(pcif);
     i8255x *dev = (struct i8255x *)km_slice_alloc();
-    dev->mmio_base = i8255x_resolve_mmio_base(pcif);
+    dev->mmio_base = get_mmio_addr(pcif);
     if (!dev->mmio_base) {
         cio_printf("Failed to resolve MMIO base\n");
         km_slice_free(pcif);
@@ -72,7 +90,7 @@ int i8255x_init(uint32_t pci_bar, bool_t is_io) {
 
 
     // Read HW address from EEPROM
-    i8255x_read_addr_from_eeprom(dev, dev->addr);
+    get_mac_addr(dev, dev->addr);
 
 
     cio_printf("MAC addr=%02x:%02x:%02x:%02x:%02x:%02x\n", dev->addr[0],
@@ -80,9 +98,6 @@ int i8255x_init(uint32_t pci_bar, bool_t is_io) {
             dev->addr[5]);
 
 
-    // //APIC
-    // dev->irq = pcif->irq_line;
-    // ioapicenable(dev->irq, ncpu - 1);
 
     // setup tx/rx rings
     i8255x_init_tx(dev);
@@ -90,7 +105,7 @@ int i8255x_init(uint32_t pci_bar, bool_t is_io) {
 
     // Init multicast array table
     for (int i = 0; i < 128; i++) {
-        i8255x_reg_write(dev, I8255X_MULTICAST_TABLE_ARRAY + (i << 2), 0);
+        write_reg(dev, I8255X_MULTICAST_TABLE_ARRAY + (i << 2), 0);
     }
 
     return 0;
