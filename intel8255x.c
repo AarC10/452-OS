@@ -49,13 +49,13 @@ static void i8255x_init_rx(i8255x *dev) {
 int i8255x_init(uint32_t pci_bar, bool_t is_io) {
     struct pci_func *pcif = (struct pci_func *) km_slice_alloc();
     if (!pcif) {
-        cprintf("km_slice_alloc failed for network pcif\n");
+        cio_printf("km_slice_alloc failed for network pcif\n");
         return -1;
     }
 
     // Find the PCI device
     if (!pci_search_for_device(0x8086, 0x1229, pcif)) {
-        cprintf("PCI device not found\n");
+        cio_printf("PCI device not found\n");
         return -1;
     }
 
@@ -63,26 +63,26 @@ int i8255x_init(uint32_t pci_bar, bool_t is_io) {
     i8255x *dev = (struct i8255x *)km_slice_alloc();
     dev->mmio_base = i8255x_resolve_mmio_base(pcif);
     if (!dev->mmio_base) {
-        cprintf("Failed to resolve MMIO base\n");
+        cio_printf("Failed to resolve MMIO base\n");
         km_slice_free(pcif);
         return -1;
     }
 
-    cprintf("mmio_base=0x%08x\n", dev->mmio_base);
+    cio_printf("mmio_base=0x%08x\n", dev->mmio_base);
 
 
     // Read HW address from EEPROM
     i8255x_read_addr_from_eeprom(dev, dev->addr);
 
 
-    cprintf("MAC addr=%02x:%02x:%02x:%02x:%02x:%02x\n", dev->addr[0],
+    cio_printf("MAC addr=%02x:%02x:%02x:%02x:%02x:%02x\n", dev->addr[0],
             dev->addr[1], dev->addr[2], dev->addr[3], dev->addr[4],
             dev->addr[5]);
 
 
-    //APIC
-    dev->irq = pcif->irq_line;
-    ioapicenable(dev->irq, ncpu - 1);
+    // //APIC
+    // dev->irq = pcif->irq_line;
+    // ioapicenable(dev->irq, ncpu - 1);
 
     // setup tx/rx rings
     i8255x_init_tx(dev);
