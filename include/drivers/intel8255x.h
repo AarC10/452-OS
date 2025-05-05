@@ -13,7 +13,8 @@
 
 // Registers
 // Registers 
-#define I8255X_CTL (0x0000)   // Device Control Register - RW 
+#define I8255X_CTL (0x0000)   // Device Control Register - RW
+#define I8255X_STATUS 0x0008  // Device Status Register - RO
 #define I8255X_EERD (0x0014)  // EEPROM Read - RW 
 #define I8255X_ICR (0x00C0)   // Interrupt Cause Read - R 
 #define I8255X_IMS (0x00D0)   // Interrupt Mask Set - RW 
