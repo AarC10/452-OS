@@ -42,7 +42,6 @@ typedef unsigned long int ulong_t;
 
 // Boolean values
 typedef uint8_t bool_t;
-
 #define true	1
 #define false	0
 
