@@ -3,6 +3,7 @@
 #include <drivers/intel8255x_ops.h>
 #include <x86/pci.h>
 #include <kmem.h>
+#include <common.h>
 
 #define PCI_BASE_ADDR_SPACE_MASK 0xffff
 #define PCI_BASE_ADDR_MEM_MASK (1 << 17)
@@ -28,29 +29,21 @@ static uint32_t get_mmio_addr(struct pci_func *pcif) {
 
 static void i8255x_init_tx(i8255x *dev) {
     for (int i = 0; i < I8255X_TX_RING_SIZE; i++) {
-        dev->tx_ring[i].addr = 0;
-        dev->tx_ring[i].length = 0;
-        dev->tx_ring[i].cso = 0;
-        dev->tx_ring[i].cmd = 0;
-        dev->tx_ring[i].status = 0;
-        dev->tx_ring[i].css = 0;
-        dev->tx_ring[i].special = 0;
+        memset(&dev->tx_ring[i], 0, sizeof(i8255x_tx_desc));
     }
 
-    uint32_t base = dev->tx_ring;
+    // Expecting we aren't using the virtual addr space in this OS right now
+    // Can ignore V2P functions here. Causes some weird compile issues when
+    // including vm.h
+    uint64_t base = (uint64_t)(dev->tx_ring);
 }
 
 static void i8255x_init_rx(i8255x *dev) {
     for (int i = 0; i < I8255X_RX_RING_SIZE; i++) {
-        dev->rx_ring[i].addr = 0;
-        dev->rx_ring[i].length = 0;
-        dev->rx_ring[i].csum = 0;
-        dev->rx_ring[i].status = 0;
-        dev->rx_ring[i].errors = 0;
-        dev->rx_ring[i].special = 0;
+        memset(&dev->rx_ring[i], 0, sizeof(i8255x_rx_desc));
     }
 
-    uint32_t base = dev->rx_ring;
+    uint64_t base = (uint64_t)(dev->rx_ring);
 }
 
 int i8255x_init(uint32_t pci_bar, bool_t is_io) {
@@ -87,9 +80,13 @@ int i8255x_init(uint32_t pci_bar, bool_t is_io) {
             dev->addr[5]);
 
 
+    //APIC
+    dev->irq = pcif->irq_line;
+    ioapicenable(dev->irq, ncpu - 1);
+
     // setup tx/rx rings
-    i8255x_rx_init(dev);
-    i8255x_tx_init(dev);
+    i8255x_init_tx(dev);
+    i8255x_init_rx(dev);
 
     // Init multicast array table
     for (int i = 0; i < 128; i++) {
