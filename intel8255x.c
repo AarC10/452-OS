@@ -36,23 +36,42 @@ static uint32_t get_mmio_addr(struct pci_func *pcif) {
     return mmio_base;
 }
 
-static uint16_t eeprom_read(i8255x *dev, uint8_t addr) {
-    uint32_t data = 0;
-    write_reg(dev, I8255X_EERD, I8255X_EERD_READ | addr << I8255X_EERD_ADDR);
-    while (!((data = read_reg(dev, I8255X_EERD)) & I8255X_EERD_DONE)) {
-    }
-    return (uint16_t)(data >> I8255X_EERD_DATA);
+static uint16_t i8255x_read_eeprom(i8255x *dev, uint8_t addr) {
+    uint32_t tmp;
+    uint32_t data;
+
+    // Tell the EEPROM to start reading
+    tmp = ((uint32_t)addr & 0xff) << 8;  // default shift
+    tmp |= I8255X_EERD_READ;
+
+    write_reg(dev, I8255X_EERD, tmp);
+
+    // Wait until the read is finished
+    do {
+        data = read_reg(dev, I8255X_EERD);
+        __asm__ __volatile__("pause");
+        cio_puts("Waiting for EEPROM read...\n");
+    } while (!(data & I8255X_EERD_DONE));
+
+    // Return the actual data
+    return (uint16_t)(data >> 16);
 }
 
 static void get_mac_addr(i8255x *dev, uint8_t mac[6]) {
-    uint16_t res = 0;
-    for (int i = 0; i < 3; i++) {
-        res = eeprom_read(dev, i);
-        mac[i * 2] = (res >> 8) & 0xFF;
-        mac[i * 2 + 1] = res & 0xFF;
-    }
-}
+    uint16_t val;
 
+    val = i8255x_read_eeprom(dev, 0);
+    mac[0] = val & 0xFF;
+    mac[1] = (val >> 8) & 0xFF;
+
+    val = i8255x_read_eeprom(dev, 1);
+    mac[2] = val & 0xFF;
+    mac[3] = (val >> 8) & 0xFF;
+
+    val = i8255x_read_eeprom(dev, 2);
+    mac[4] = val & 0xFF;
+    mac[5] = (val >> 8) & 0xFF;
+}
 static void i8255x_init_tx(i8255x *dev) {
     for (int i = 0; i < I8255X_TX_RING_SIZE; i++) {
         memset(&dev->tx_ring[i], 0, sizeof(i8255x_tx_desc));
