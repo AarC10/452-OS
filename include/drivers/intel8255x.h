@@ -37,6 +37,12 @@
 #define I8255X_MTA (0x5200)   // Multicast Table Array - RW Array 
 #define I8255X_RA (0x5400)    // Receive Address - RW Array 
 
+// Dev Ctrl
+#define I8255X_CTL_SLU 0x00000040     // Link speed
+#define I8255X_CTL_FRCSPD 0x00000800  // Force speed
+#define I8255X_CTL_FRCDPLX 0x00001000 // Force duplex
+#define I8255X_CTL_RST 0x00400000     // Full reset
+
 // EEPROM
 #define I8255X_EERD_ADDR 8
 #define I8255X_EERD_DATA 16

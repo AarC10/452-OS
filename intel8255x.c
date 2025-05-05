@@ -40,7 +40,6 @@ static uint16_t eeprom_read(i8255x *dev, uint8_t addr) {
     uint32_t data = 0;
     write_reg(dev, I8255X_EERD, I8255X_EERD_READ | addr << I8255X_EERD_ADDR);
     while (!((data = read_reg(dev, I8255X_EERD)) & I8255X_EERD_DONE)) {
-        __asm__ __volatile__("pause");
     }
     return (uint16_t)(data >> I8255X_EERD_DATA);
 }
@@ -91,7 +90,7 @@ int i8255x_init() {
 
     pci_func_enable(pcif);
     i8255x *dev = (struct i8255x *)km_slice_alloc();
-    dev->mmio_base = get_mmio_addr(pcif);
+    dev->mmio_base = get_mmio_addr(pcif) & ~0xF;
     if (!dev->mmio_base) {
         cio_puts("Failed to resolve MMIO base\n");
         km_slice_free(pcif);
@@ -100,6 +99,8 @@ int i8255x_init() {
 
     cio_printf("mmio_base=0x%08x\n", dev->mmio_base);
 
+    write_reg(dev, I8255X_CTL, I8255X_CTL_RST);
+    delay(DELAY_1_SEC);
 
     // Read HW address from EEPROM
     get_mac_addr(dev, dev->addr);
