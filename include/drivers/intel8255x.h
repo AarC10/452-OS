@@ -9,6 +9,8 @@
 #define I8255X_RXD_STAT_DD 0x01  // Desc done
 #define I8255X_RXD_STAT_EOP 0x02 // End of packet
 
+#define I8255X_MULTICAST_TABLE_ARRAY 0x5200
+
 typedef struct {
     uint64_t addr; // Addr of the data buffer
     uint16_t length; // Length of data
