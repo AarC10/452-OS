@@ -38,6 +38,9 @@
 #define	UA4_PORT		UA4_COM1_PORT
 #define UA5_PORT		UA4_COM1_PORT
 
+// Name for UA4 COM2
+#define UA4_PORT2        UA4_COM2_PORT
+
 /*
 ** Registers
 **
@@ -79,11 +82,17 @@
 #define	UA4_TXD				(UA4_PORT+0)
 #	define	UA4_TX_DATA			UA4_TXD
 
+#define UA4_PORT2_TXD             (UA4_PORT2+0)
+#   define  UA4_PORT2_TX_DATA         UA4_PORT2_TXD
+
 /*
 ** Interrupt Enable Register
 */
 #define	UA4_IER				(UA4_PORT+1)
 #	define	UA4_INT_ENABLE_REG	UA4_IER
+
+#define	UA4_PORT2_IER				(UA4_PORT2+1)
+#	define	UA4_PORT2_INT_ENABLE_REG	UA4_PORT2_IER
 
 // fields
 #define	UA4_IER_RX_IE		0x01	// Rcvr High-Data-Level Int Enable
@@ -188,6 +197,9 @@
 #define	UA4_LCR				(UA4_PORT+3)
 #	define	UA4_LINE_CTL		UA4_LCR
 
+#define	UA4_PORT2_LCR				(UA4_PORT2+3)
+#	define	UA4_PORT2_LINE_CTL		UA4_PORT2_LCR
+
 #define	UA4_LCR_WLS_MASK	0x03	// Word Length Select mask
 #	define	UA4_LCR_WLS0_MASK	0x01	// WLS bit 0 mask
 #	define	UA4_LCR_WLS1_MASK	0x02	// WLS bit 1 mask
@@ -235,6 +247,9 @@
 */
 #define	UA4_DLL				(UA4_PORT+0)	// Divisor Latch (least sig.)
 #define	UA4_DLM				(UA4_PORT+1)	// Divisor Latch (most sig.)
+
+#define	UA4_PORT2_DLL				(UA4_PORT2+0)	// Divisor Latch (least sig.)
+#define	UA4_PORT2_DLM				(UA4_PORT2+1)	// Divisor Latch (most sig.)
 
 // aliases
 #define	UA4_DIVISOR_LATCH_LS	UA4_DLL

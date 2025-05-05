@@ -276,6 +276,22 @@ int cvtdec(char *buf, int32_t value);
 int cvthex(char *buf, uint32_t value);
 
 /**
+** cvtbin(buf,value)
+**
+** convert a 32-bit unsigned value into a binary NUL-terminated
+** character string
+**
+** @param buf    Destination buffer
+** @param value  Value to convert
+**
+** @return The number of characters placed into the buffer
+**          (not including the NUL)
+**
+** NOTE:  assumes buf is large enough to hold the resulting string
+*/
+int cvtbin( char *buf, uint32_t value );
+
+/**
 ** cvtoct(buf,value)
 **
 ** convert a 32-bit unsigned value into a mininal-length (up to
