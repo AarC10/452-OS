@@ -50,6 +50,30 @@
 #define I8255X_EERD_READ (1 << 0)
 #define I8255X_EERD_DONE (1 << 4)
 
+// Packet buffer size (per-descriptor)
+#define I8255X_PKT_BUF_SIZE 2048
+
+// Receiver Control (RCTL) bits
+#define I8255X_RCTL_EN 0x00000002         // Receiver enable
+#define I8255X_RCTL_BAM 0x00008000        // Broadcast enable
+#define I8255X_RCTL_SECRC 0x04000000      // Strip Ethernet CRC
+#define I8255X_RCTL_BSIZE_2048 (0 << 16)  // 2048-byte buffer size
+
+// Transmitter Control (TCTL) bits
+#define I8255X_TCTL_EN 0x00000002   // Transmitter enable
+#define I8255X_TCTL_PSP 0x00000008  // Pad short packets
+#define I8255X_TCTL_CT_SHIFT 4      // Collision threshold shift
+#define I8255X_TCTL_COLD_SHIFT 12   // Collision distance (backoff) shift
+
+// Transmit inter-packet gap (TIPG) default value
+#define I8255X_TIPG_DEFAULT 0x0060200A
+
+// TX descriptor command & status bits
+#define I8255X_TXD_CMD_EOP 0x01   // End of packet
+#define I8255X_TXD_CMD_IFCS 0x02  // Insert FCS
+#define I8255X_TXD_CMD_RS 0x08    // Report status
+#define I8255X_TXD_STAT_DD 0x01   // Descriptor Done
+
 typedef struct {
     uint64_t addr; // Addr of the data buffer
     uint16_t length; // Length of data

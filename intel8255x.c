@@ -5,9 +5,14 @@
 #include <kmem.h>
 #include <types.h>
 #include <x86/pci.h>
+#include <cio.h>
+#include <klib.h>
 
 #define PCI_BAR_IO_MASK 0x1
 #define PCI_BAR_MEM_MASK (~0xFULL)
+
+static i8255x *global_dev;
+static uint32_t rx_next = 0;
 
 static inline uint32_t read_reg(i8255x *dev, uint32_t off) {
     return *(volatile uint32_t *)(dev->mmio_base + off);
@@ -78,6 +83,48 @@ static void i8255x_init_rx(i8255x *dev) {
     }
 }
 
+static void i8255x_setup_rings(i8255x *dev) {
+    // RX ring
+    for (int i = 0; i < I8255X_RX_RING_SIZE; i++) {
+        void *buf = km_page_alloc(1);  // allocate 1 page (~4 KB)
+        if (!buf) {
+            cio_puts("RX buffer alloc failed\n");
+            return;
+        }
+        dev->rx_ring[i].addr = (uint64_t)(uintptr_t)buf;
+        dev->rx_ring[i].length = I8255X_PKT_BUF_SIZE;
+        dev->rx_ring[i].status = 0;
+    }
+    // Base addr low/high
+    write_reg(dev, I8255X_RDBAL, (uint32_t)((uint64_t)(uintptr_t)dev->rx_ring));
+    write_reg(dev, I8255X_RDBAH,
+              (uint32_t)(((uint64_t)(uintptr_t)dev->rx_ring) >> 32));
+    write_reg(dev, I8255X_RDLEN, I8255X_RX_RING_SIZE * sizeof(i8255x_rx_desc));
+    write_reg(dev, I8255X_RDH, 0);
+    write_reg(dev, I8255X_RDT, I8255X_RX_RING_SIZE - 1);
+    // Enable RX: enable, broadcast, strip CRC, 2 KB buffers
+    write_reg(dev, I8255X_RCTL,
+              I8255X_RCTL_EN | I8255X_RCTL_BAM | I8255X_RCTL_SECRC |
+                  I8255X_RCTL_BSIZE_2048);
+
+    // TX ring
+    for (int i = 0; i < I8255X_TX_RING_SIZE; i++) {
+        dev->tx_ring[i].status = I8255X_TXD_STAT_DD;
+    }
+    write_reg(dev, I8255X_TDBAL, (uint32_t)((uint64_t)(uintptr_t)dev->tx_ring));
+    write_reg(dev, I8255X_TDBAH,
+              (uint32_t)(((uint64_t)(uintptr_t)dev->tx_ring) >> 32));
+    write_reg(dev, I8255X_TDLEN, I8255X_TX_RING_SIZE * sizeof(i8255x_tx_desc));
+    write_reg(dev, I8255X_TDH, 0);
+    write_reg(dev, I8255X_TDT, 0);
+    // Enable TX: enable, pad short pkts, default CT/COLD
+    write_reg(dev, I8255X_TCTL,
+              I8255X_TCTL_EN | I8255X_TCTL_PSP |
+                  (0x10 << I8255X_TCTL_CT_SHIFT) |
+                  (0x40 << I8255X_TCTL_COLD_SHIFT));
+    write_reg(dev, I8255X_TIPG, I8255X_TIPG_DEFAULT);
+}
+
 int i8255x_init(void) {
     struct pci_func *pcif = km_slice_alloc();
     if (!pcif) {
@@ -112,22 +159,56 @@ int i8255x_init(void) {
                dev->addr[1], dev->addr[2], dev->addr[3], dev->addr[4],
                dev->addr[5]);
 
-    // init rings
-    i8255x_init_tx(dev);
-    i8255x_init_rx(dev);
+
 
     // clear multicast table
     for (int i = 0; i < 128; i++) {
         write_reg(dev, I8255X_MULTICAST_TABLE_ARRAY + (i << 2), 0);
     }
 
+    global_dev = dev;
+    i8255x_setup_rings(dev);
+    cio_puts("8255x setup complete\n");
+
+
     return 0;
 }
 
-int i8255x_transmit(const uint8_t *frame, uint16_t len) { return -1; }
+int i8255x_transmit(const uint8_t *frame, uint16_t len) {
+    i8255x *dev = global_dev;
+    uint32_t tail = read_reg(dev, I8255X_TDT);
+    i8255x_tx_desc *d = &dev->tx_ring[tail];
 
-int i8255x_receive(uint8_t *buf, uint16_t bufsize) { return -1; }
+    // hardware must have finished with this descriptor
+    if (!(d->status & I8255X_TXD_STAT_DD)) return -1;
 
-void i8255x_get_mac(uint8_t mac_out[6]) {
-    // no-op: mac is already in dev->addr
+    d->addr = (uint64_t)(uintptr_t)frame;
+    d->length = len;
+    d->cso = 0;
+    d->cmd = I8255X_TXD_CMD_EOP | I8255X_TXD_CMD_IFCS | I8255X_TXD_CMD_RS;
+    d->status = 0;
+    d->css = 0;
+    d->special = 0;
+
+    tail = (tail + 1) % I8255X_TX_RING_SIZE;
+    write_reg(dev, I8255X_TDT, tail);
+    return 0;
+}
+
+// Receive one packet: returns byte-count, or 0 if none available.
+int i8255x_receive(uint8_t *buf, uint16_t bufsize) {
+    i8255x *dev = global_dev;
+    i8255x_rx_desc *d = &dev->rx_ring[rx_next];
+    // Check if descriptor has been filled
+    if (!(d->status & I8255X_RXD_STAT_DD)) return 0;
+    // Copy up to bufsize
+    uint16_t len = d->length;
+    if (len > bufsize) len = bufsize;
+    memcpy(buf, (void *)(uintptr_t)d->addr, len);
+    // Mark descriptor free
+    d->status = 0;
+    // Advance the hardware tail
+    write_reg(dev, I8255X_RDT, rx_next);
+    rx_next = (rx_next + 1) % I8255X_RX_RING_SIZE;
+    return len;
 }
