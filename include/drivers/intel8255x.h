@@ -72,7 +72,7 @@ typedef struct {
     struct i8255x *next;
 } i8255x;
 
-int i8255x_init(uint32_t pci_bar, bool_t is_io);
+int i8255x_init();
 
 int i8255x_transmit(const uint8_t *frame, uint16_t len);
 

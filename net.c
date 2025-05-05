@@ -1,16 +1,18 @@
 #include "cio.h"
 #include "x86/pci.h"
 #include <net/net.h>
+#include <drivers/intel8255x.h>
+#include "support.h"
 
 int net_init() {
     struct pci_func pcif;
+    if (i8255x_init()) {
+        cio_puts("Failed to initialize i8255x\n");
+        return -1;
+    }
 
-    if (pci_search_for_device(0x8086, 0x1229, &pcif) == 0) {
-      usprint("Detected\n");
-      return 0;
-    } else {
-      usprint("Not detected\n");
-  }
+    cio_puts("i8255x initialized successfully\n");
+    delay(DELAY_5_SEC);
 
     return -1;
 }

@@ -64,24 +64,27 @@ static void i8255x_init_rx(i8255x *dev) {
     uint64_t base = (uint64_t)(dev->rx_ring);
 }
 
-int i8255x_init(uint32_t pci_bar, bool_t is_io) {
+int i8255x_init() {
     struct pci_func *pcif = (struct pci_func *) km_slice_alloc();
     if (!pcif) {
-        cio_printf("km_slice_alloc failed for network pcif\n");
+        cio_puts("km_slice_alloc failed for network pcif\n");
         return -1;
     }
 
     // Find the PCI device
-    if (!pci_search_for_device(0x8086, 0x1229, pcif)) {
-        cio_printf("PCI device not found\n");
-        return -1;
+    if (!pci_search_for_device(0x8086, 0x1227, pcif)) {
+        if (!pci_search_for_device(0x8086, 0x1229, pcif)) {
+            cio_puts("Failed to find PCI device\n");
+            km_slice_free(pcif);
+            return -1;
+        }
     }
 
     pci_func_enable(pcif);
     i8255x *dev = (struct i8255x *)km_slice_alloc();
     dev->mmio_base = get_mmio_addr(pcif);
     if (!dev->mmio_base) {
-        cio_printf("Failed to resolve MMIO base\n");
+        cio_puts("Failed to resolve MMIO base\n");
         km_slice_free(pcif);
         return -1;
     }

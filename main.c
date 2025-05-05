@@ -328,7 +328,7 @@ int main( void ) {
 	sio_init();     // serial i/o
 	sys_init();     // system call
 	user_init();    // user code handling
-  net_init();
+  	net_init();
 	cio_puts( "\nModule initialization complete.\n" );
 
 #if TRACING_INIT
