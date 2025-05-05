@@ -98,6 +98,9 @@ int i8255x_init(uint32_t pci_bar, bool_t is_io) {
             dev->addr[5]);
 
 
+    // //APIC
+    // dev->irq = pcif->irq_line;
+    // ioapicenable(dev->irq, ncpu - 1);
 
     // setup tx/rx rings
     i8255x_init_tx(dev);
