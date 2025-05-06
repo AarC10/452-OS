@@ -1,7 +1,7 @@
 /**
  * @file        pci.h
  *
- * @author      Aaron Chan
+ * @authors     Aaron Chan, Will Bicks
  *
  * @brief       PCI interface. See https://wiki.osdev.org/PCI for more details
  */

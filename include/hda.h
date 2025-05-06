@@ -1,4 +1,5 @@
 // HDA.h - defines for Intel High Definition Audio system
+// Author: Will Bicks
 
 // Notable register fields
 #define HDA_GCTL_CRST 	0x1	// Controller reset

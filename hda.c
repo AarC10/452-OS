@@ -1,4 +1,5 @@
 // HDA.c - driver for Intel High Definition Audio system
+// Author: Will Bicks
 
 #include <common.h>
 #include <support.h>
