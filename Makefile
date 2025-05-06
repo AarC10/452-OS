@@ -18,8 +18,8 @@ NET_C_OBJ = ethernet.o ipv4.o udp.o net.o
 VGA_C_SRC = vga_graphics.c
 VGA_C_OBJ = vga_graphics.o
 
-DRIVER_C_SRC = intel8255x.c intel8255x_ops.c
-DRIVER_C_OBJ = intel8255x.o intel8255x_ops.o
+DRIVER_C_SRC = intel8255x.c intel8255x_ops.c hda.c
+DRIVER_C_OBJ = intel8255x.o intel8255x_ops.o hda.o
 
 OS_C_SRC = cio.c clock.c klibc.c kmem.c list.c main.c procs.c \
 	   sio.c support.c syscalls.c user.c dmx.c pci.c \
@@ -215,7 +215,7 @@ QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 # run 'make' with -DQEMUEXTRA=xxx to add option 'xxx' when QEMU is run
 #
 # does not include a '-serial' option, as that may or may not be needed
-QEMUOPTS = -drive file=disk.img,index=0,media=disk,format=raw -netdev user,id=net0 -net nic,model=i82557b,netdev=net0 $(QEMUEXTRA)
+QEMUOPTS = -drive file=disk.img,index=0,media=disk,format=raw -netdev user,id=net0 -net nic,model=i82557b,netdev=net0 -device intel-hda -device hda-output $(QEMUEXTRA)
 
 ##########################
 #  TRANSFORMATION RULES  #

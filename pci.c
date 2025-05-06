@@ -3,6 +3,9 @@
 #include <x86/ops.h>
 #include <x86/pci.h>
 
+#define PCI_CONFIG_ADDRESS 0xCF8
+#define PCI_CONFIG_DATA    0xCFC
+
 static void conf_set_addr(uint32_t bus, uint32_t dev, uint32_t func,
                           uint32_t offset) {
     uint32_t addr = (1U << 31) | (bus << PCI_CONFIG_BUS_NUMBER_OFFSET) |
@@ -32,7 +35,7 @@ uint32_t pci_read_config(uint8_t bus, uint8_t device, uint8_t function,
     return inl(PCI_CONFIG_DATA_REGISTER);
 }
 
-int pci_search_for_device(uint16_t vendor_id, uint16_t device_id,
+int pci_find_device_by_id(uint16_t vendor_id, uint16_t device_id,
                           struct pci_func *pcif) {
     for (int b = 0; b < PCI_MAX_BUSES; b++) {
         for (int d = 0; d < PCI_MAX_DEVICES_PER_BUS; d++) {
@@ -50,6 +53,34 @@ int pci_search_for_device(uint16_t vendor_id, uint16_t device_id,
         }
     }
     return -1;
+}
+
+/**
+ * Given the provided class code, return the bus, device, and func numbers
+ * of the first found matching PCI device.
+ */
+int pci_find_device_by_class(uint8_t base_class, uint8_t sub_class,
+	struct pci_func *pcif) {
+	for (uint8_t b = 0; b < PCI_MAX_BUSES; b++) {
+		for (uint8_t d = 0; d < PCI_MAX_DEVICES_PER_BUS; d++) {
+			for (uint8_t f = 0; f < PCI_MAX_FUNCTIONS; f++) {
+				uint32_t found_class = pci_read_config(b, d, f, 0x8) >> 8;
+				uint8_t found_base = found_class >> 16;
+				uint8_t found_sub = (found_class >> 8) & 0xFF;
+
+				if(found_base == base_class && found_sub == sub_class) {
+					pcif->bus.busno = b;
+					pcif->device = d;
+					pcif->function = f;
+
+					pci_func_enable(pcif);
+					return 0;
+				}
+			}
+		}
+	}
+
+	return -1;
 }
 
 void pci_func_enable(struct pci_func *pcif) {
@@ -95,3 +126,4 @@ void pci_func_enable(struct pci_func *pcif) {
         pcif->device, pcif->function,
         pci_read_config(pcif->bus.busno, pcif->device, pcif->function, 0x04));
 }
+

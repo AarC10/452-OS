@@ -21,6 +21,8 @@
 // #include <userids.h>
 #include <vm.h>
 
+#include <hda.h>
+
 /*
 ** PRIVATE DEFINITIONS
 */

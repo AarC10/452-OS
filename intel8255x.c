@@ -190,8 +190,8 @@ int i8255x_init(void) {
     }
 
     // find either device ID
-    if (pci_search_for_device(0x8086, 0x1227, pcif) &&
-        pci_search_for_device(0x8086, 0x1229, pcif)) {
+    if (pci_find_device_by_id(0x8086, 0x1227, pcif) &&
+        pci_find_device_by_id(0x8086, 0x1229, pcif)) {
         cio_puts("No Intel 8255x NIC found\n");
         return -1;
     }
