@@ -1,3 +1,9 @@
+/**
+ * @file net.h
+ * @author Aaron Chan
+ * @brief Network interface header file
+ */
+
 #ifndef _NET_
 #define _NET_
 

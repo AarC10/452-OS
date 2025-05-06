@@ -1,3 +1,10 @@
+/**
+ * @file net.h
+ * @author Aaron Chan
+ * @brief Abstracts away interfacing with hardware devices for networking
+ *        and sending and receiving packets over UDP.  
+ */
+
 #include <drivers/intel8255x.h>
 #include <net/net.h>
 
@@ -7,8 +14,10 @@
 #include <support.h>
 #include <x86/pci.h>
 
+static const uint8_t src_mac[ETH_ADDR_LEN] = {0};
+
 int net_init() {
-    if (i8255x_init()) {
+    if (i8255x_init(src_mac)) {
         cio_puts("Failed to initialize i8255x\n");
         return -1;
     }
@@ -61,7 +70,6 @@ int net_transmit(const uint8_t *frame, uint16_t len) {
 
     // Ethernet II
     eth_frame_t eth;
-    uint8_t src_mac[ETH_ADDR_LEN] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
     uint8_t dest_mac[ETH_ADDR_LEN] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
 
     eth_init(&eth, dest_mac, src_mac, ETH_TYPE_IPV4);
