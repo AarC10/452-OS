@@ -1,0 +1,106 @@
+===============================================================================
+Module: DMX512 Driver (dmx)
+
+File:       doc/dmx.txt
+Author:     John Arrandale <jca7237@rit.edu>
+Version:    
+Date:       5/6/25
+===============================================================================
+
+Location:   src:        ./dmx.c
+            headers:    ./include/dmx.h
+            usercode:   ./usercode/dmxTest.c
+
+Purpose:    Provides a DMX512 driver over serial
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+OVERVIEW
+===============================================================================
+The DMX512 driver adds support for the DMX512 protocol over serial to control
+stage and architectural lighting systems. It allows user programs to easily
+send DMX channel data out to a dedicated DMX serial port.
+
+===============================================================================
+DESIGN GOALS
+===============================================================================
+- Adhere to the DMX512 standard where possible
+- Fully integrate with PC16450D/PC16550D UART Receivers/Transmitters
+- Provide an easy to use interface for users
+- Offer easy expandability in the future
+
+===============================================================================
+MAJOR DATA STRUCTURES
+===============================================================================
+- `dmx_slot_data`: A uint8_t array representing a collection of DMX channels 
+  in a universe.
+
+- `dmx_frame`: A uint8_t array of bits encapsulating a DMX channel/slot
+
+- `dmx_packet`: A uint8_t array of bits encapsulating all DMX channels/slots
+  in a universe.
+
+===============================================================================
+API FUNCTIONS (Declared in dmx.h)
+===============================================================================
+[WRITE DMX]
+-------------------------------------------------------------------------------
+void dmx_write(uint_t port, uint8_t data[DMX_SLOTS]);
+    Wraps the given DMX slot data into DMX frames and writes the
+    DMX packet to the given serial port.
+
+===============================================================================
+INTERNALS & IMPLEMENTATION DETAILS
+===============================================================================
+[DMXWRITE SYSCALL]
+The `dmxwrite(uint_t port, uint8_t data[DMX_SLOTS])` syscall wraps the given
+DMX data, an array of channels/slots and their values, into DMX frames and
+finally into a DMX packet which is sent out of the given serial port. Packets
+and frames are assembled by padding the given data with the approriate starting
+bits, stop bits, and reorders data bits where necessary. 
+
+[DMX FRAME CONSTRUCTION]
+According to the DMX512 standard, frames consist of the following parts: a
+start bit, 8 data bits from LSB to MSB and two stop bits for a total frame
+length of 11 bits or 44 usec at 250 kbaud. 
+
+[DMX PACKET CONSTRUCTION]
+According to the DMX512 standard, packets consist of the following parts: the
+DMX reset procedure, a start frame and data frames.
+
+DMX Reset Procedure: The reset procedure is as follows. A "SPACE" for BREAK
+lasting >92 usec (>23 bits at 250 kbaud) and a "MARK" after BREAK lasting for
+>8 usec (>2 bits).
+
+Start Frame: The start frame (the first frame) always carries the start code.
+This is typically 0 for normal data transfer. However, other start codes can be
+used to send other kinds of data. This implementation only deals with normal
+data (start code of 0).
+
+Data Frames: Data frames contain the numerical values for each channel/slot.
+The order of the frame corresponds to the channel/slot of that frame. A
+"MARK" may appear between slots however this implementation always uses 0.
+
+*NOTE: Due to the PC16450D/PC16550D only support a maximum baud rate of
+       115.2 kbaud, DMX packets and frames are constructed slightly differently
+       than outlined in the standard. Because of this, it's assumed 1 bit at
+       115.2 kbaud is read by end devices as 2 bits.
+
+===============================================================================
+LIMITATIONS
+===============================================================================
+- Due to the maximum baud rate supported by PC16450D/PC16550D resulting in a
+  mismatch with the DMX512 standard, channel values are limited to 3 effective
+  bits instead of 8. This means channels are limited specific values ranging
+  from 1-127.
+
+- Due to the aforementioned issues above, expect DMX devices to behave
+  differently depending on their exact implementions when interpreting DMX
+  data sent by the driver.
+
+===============================================================================
+KNOWN USES
+===============================================================================
+- Used by `usercode/dmxTest.c`
+- Allows projects to control lighting systems or other devices over DMX
