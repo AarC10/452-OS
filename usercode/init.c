@@ -20,14 +20,7 @@
 */
 static proc_t in_spawn_table[] = {
 
-	// the idle process; it runs at Deferred priority,
-	// so it will only be dispatched when there is
-	// nothing else available to be dispatched
-	// PROCENT( idle, PRIO_DEFERRED, ".", "idle", "." ),
-
-	// // the user shell
-	// PROCENT( shell, PRIO_STD, "@", "shell" ),
-
+#if defined(VGA_GRAPHICS_MODE)
 	// // color_test for vertical color bars
 	// PROCENT( color_test, PRIO_HIGH, "&", "color_test" ),
 
@@ -42,6 +35,16 @@ static proc_t in_spawn_table[] = {
 
 	// snake for playing snake game
 	PROCENT( snake, PRIO_HIGH, "&", "snake" ),
+#else
+	// the idle process; it runs at Deferred priority,
+	// so it will only be dispatched when there is
+	// nothing else available to be dispatched
+	PROCENT( idle, PRIO_DEFERRED, ".", "idle", "." ),
+
+	// the user shell
+	PROCENT( shell, PRIO_STD, "@", "shell" ),
+
+#endif
 
 	// a dummy entry to use as a sentinel
 	// { TBLEND }

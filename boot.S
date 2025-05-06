@@ -52,11 +52,13 @@ bootentry:
 	movw	$BOOT_SP_DISP, %ax
 	movw	%ax, %sp
 
+#if defined(VGA_GRAPHICS_MODE)
 /* 
 ** Set video mode to 0x13 (graphics)
 */ 
     movw    $0x0013, %ax
     int     $0x10
+#endif
 
 /*
 ** Next, verify that the disk is there and working.

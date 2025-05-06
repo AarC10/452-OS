@@ -9,6 +9,8 @@
 **
 ** Draws classic VGA vertical color stripes across the screen.
 **
+** Author: Nicholas Merante <ncm2705@rit.edu>
+**
 */
 
 USERMAIN(color_test)
