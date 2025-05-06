@@ -110,10 +110,28 @@ typedef struct {
     struct i8255x *next;
 } i8255x;
 
-int i8255x_init(void);
+/**
+ * @brief Initialize the Intel 8255x network driver
+ * @param src_mac Pointer to the source MAC address to be set by the driver
+ * @return 0 on success, -1 on failure
+ */
+int i8255x_init(uint8_t *src_mac);
 
+/**
+ * Transmit a frame over the network
+ * @param frame Pointer to the frame data to be transmitted
+ * @param len Length of the frame data
+ * @return 0 on success, -1 on failure
+ */
 int i8255x_transmit(const uint8_t *frame, uint16_t len);
 
-int i8255x_receive(uint8_t *buf, uint16_t bufsize);
+
+/**
+ * Receive a frame from the network
+ * @param buffer Pointer to the buffer where the received frame will be stored
+ * @param len Length of the buffer
+ * @return Number of bytes received, or 0 if no frame is available
+ */
+int i8255x_receive(uint8_t *buffer, uint16_t len);
 
 #endif // _INTEL8255X_DRIVER_

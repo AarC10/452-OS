@@ -277,7 +277,7 @@ int i8255x_transmit(const uint8_t *frame, uint16_t len) {
 }
 
 // Receive one packet: returns byte-count, or 0 if none available.
-int i8255x_receive(uint8_t *buf, uint16_t bufsize) {
+int i8255x_receive(uint8_t *buffer, uint16_t bufferLen) {
     i8255x *dev = global_dev;
     i8255x_rx_desc *d = &dev->rx_ring[rx_next];
     // Check if descriptor has been filled
@@ -287,10 +287,10 @@ int i8255x_receive(uint8_t *buf, uint16_t bufsize) {
 
     // Copy up to bufsize
     uint16_t len = d->length;
-    if (len > bufsize) {
-        len = bufsize;
+    if (len > bufferLen) {
+        len = bufferLen;
     }
-    memcpy(buf, (void *)(uintptr_t)d->addr, len);
+    memcpy(buffer, (void *)(uintptr_t)d->addr, len);
     
     // Mark descriptor free
     d->status = 0;
