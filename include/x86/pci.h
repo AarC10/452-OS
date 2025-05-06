@@ -116,11 +116,9 @@ struct pci_func {
  * it's vendor and device IDs.
  * @param[in] vendor_id the id of the vendor
  * @param[in] device_id the id of the device
- * @param[out] bus the bus the PCI device is on
- * @param[out] dev the device number of the bus the PCI device is on
- * @param[out] func the function of the PCI device
+ * @param[out] pci_func pointer to PCI function
  *
- * @return 1 if found. 0 if not found
+ * @return 0 if found, otherwise -1
  */
 int pci_find_device_by_id(uint16_t vendor_id, uint16_t device_id, struct pci_func *pcif);
 
@@ -146,7 +144,6 @@ int pci_find_device_by_class(uint8_t base_class, uint8_t sub_class, struct pci_f
  */
 uint32_t pci_read_config(uint8_t bus, uint8_t device, uint8_t func,
                          uint8_t offset);
-// uint32_t pci_read_config(int bus, int device, int func, int offset);
 
 void pci_func_enable(struct pci_func *pcif);
 
