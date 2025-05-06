@@ -15,13 +15,18 @@
 NET_C_SRC = ethernet.c ipv4.c udp.c net.c
 NET_C_OBJ = ethernet.o ipv4.o udp.o net.o
 
+VGA_C_SRC = vga_graphics.c
+VGA_C_OBJ = vga_graphics.o
+
 DRIVER_C_SRC = intel8255x.c intel8255x_ops.c
 DRIVER_C_OBJ = intel8255x.o intel8255x_ops.o
 
 OS_C_SRC = cio.c clock.c klibc.c kmem.c list.c main.c procs.c \
-	   sio.c support.c syscalls.c user.c dmx.c pci.c $(NET_C_SRC) $(DRIVER_C_SRC)
+	   sio.c support.c syscalls.c user.c dmx.c pci.c \
+	   $(NET_C_SRC) $(DRIVER_C_SRC) $(VGA_C_SRC)
 OS_C_OBJ = cio.o clock.o klibc.o kmem.o list.o main.o procs.o \
-	   sio.o support.o syscalls.o user.o dmx.o pci.o $(NET_C_OBJ) $(DRIVER_C_OBJ)
+	   sio.o support.o syscalls.o user.o dmx.o pci.o \
+	   $(NET_C_OBJ) $(DRIVER_C_OBJ) $(VGA_C_OBJ)
 
 OS_S_SRC = startup.o isrs.o
 OS_S_OBJ = startup.o isrs.o
@@ -106,7 +111,8 @@ GEN_OPTIONS = -DOS_CONFIG -DSYSTEM_STATUS=10 -DFORCE_INLINING \
 # If not defined, SANITY defaults to 9999.
 #
 
-DBG_OPTIONS = -DRPT_INT_UNEXP -DTRACE_CX -DCIO_DUP2_SIO
+# DBG_OPTIONS = -DRPT_INT_UNEXP -DTRACE_CX -DCIO_DUP2_SIO
+DBG_OPTIONS = -DREDIRECT_ALL_TEXT_TO_SERIAL
 
 #
 # T_ options are used to define bits in a "tracing" bitmask, to allow
@@ -132,7 +138,7 @@ DBG_OPTIONS = -DRPT_INT_UNEXP -DTRACE_CX -DCIO_DUP2_SIO
 #	make EXTRAS=-H
 #
 
-TRACE_OPTIONS = -DT_INIT
+# TRACE_OPTIONS = -DT_INIT
 
 USER_OPTIONS = $(GEN_OPTIONS) $(DBG_OPTIONS) $(TRACE_OPTIONS) $(EXTRAS)
 

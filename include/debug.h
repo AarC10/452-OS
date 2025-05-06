@@ -355,7 +355,7 @@
 #define TRACING_SCHED           0
 #define TRACING_DISPATCH        0
 #define TRACING_SYSCALLS        0
-#define TRACING_SYSRET          0
+#define TRACING_SYSRETS         0
 #define TRACING_EXIT            0
 #define TRACING_INIT            0
 #define TRACING_KMEM            0
@@ -363,7 +363,7 @@
 #define TRACING_KMEM_INIT       0
 #define TRACING_FORK            0
 #define TRACING_EXEC            0
-#define TRACING_SI_STAT         0
+#define TRACING_SIO_STAT        0
 #define TRACING_SIO_ISR         0
 #define TRACING_SIO_RD          0
 #define TRACING_SIO_WR          0
