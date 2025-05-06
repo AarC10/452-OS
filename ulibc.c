@@ -50,6 +50,7 @@
 #include <usercode/ucvtoct.c>
 #include <usercode/ucvtuns.c>
 #include <usercode/ucvtuns0.c>
+#include <usercode/itoa.c>
 
 /*
 **********************************************

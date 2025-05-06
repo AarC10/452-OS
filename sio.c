@@ -332,6 +332,9 @@ void sio_init( void ) {
 	*/
 
 	outb( UA4_IER, 0 );
+
+	outb( UA4_PORT2_IER, 0 );
+
 	ier = 0;
 
 	/*
@@ -342,12 +345,18 @@ void sio_init( void ) {
 	outb( UA4_DLL, BAUD_LOW_BYTE( DL_BAUD_9600 ) );
 	outb( UA4_DLM, BAUD_HIGH_BYTE( DL_BAUD_9600 ) );
 
+	outb( UA4_PORT2_LCR, UA4_LCR_DLAB );
+	outb( UA4_PORT2_DLL, BAUD_LOW_BYTE( DL_BAUD_115200 ) );
+	outb( UA4_PORT2_DLM, BAUD_HIGH_BYTE( DL_BAUD_115200 ) );
+
 	/*
 	** deselect the latch registers, by setting the data
 	** characteristics in the LCR
 	*/
 
 	outb( UA4_LCR, UA4_LCR_WLS_8 | UA4_LCR_1_STOP_BIT | UA4_LCR_NO_PARITY );
+
+	outb( UA4_PORT2_LCR, UA4_LCR_WLS_8 | UA4_LCR_NO_PARITY );
 	
 	/*
 	** Set the ISEN bit to enable the interrupt request signal,
@@ -574,7 +583,6 @@ int sio_read( char *buf, int length ) {
 
 	return( copied );
 }
-
 
 /**
 ** sio_writec( ch )

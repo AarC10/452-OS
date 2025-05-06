@@ -36,9 +36,10 @@
 #define SYS_setprio     10
 #define SYS_kill        11
 #define SYS_sleep       12
+#define SYS_dmxwrite    13
 
 // UPDATE THIS DEFINITION IF MORE SYSCALLS ARE ADDED!
-#define N_SYSCALLS      13
+#define N_SYSCALLS      14
 
 // dummy system call code for testing our ISR
 #define SYS_bogus       0xbad

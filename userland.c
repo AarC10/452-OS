@@ -136,3 +136,5 @@ typedef struct proc_s {
 #if defined(SPAWN_SNAKE)
 #include <usercode/vga/snake.c>
 #endif
+
+#include <usercode/dmxTest.c>

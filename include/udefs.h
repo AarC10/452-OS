@@ -86,6 +86,8 @@ USERMAIN(progS);   USERMAIN(progTUV); USERMAIN(progW);      USERMAIN(progX);
 USERMAIN(progY);   USERMAIN(progZ);   USERMAIN(color_test); USERMAIN(drawing_test);
 USERMAIN(sprite_test); USERMAIN(vga_type); USERMAIN(snake);
 
+USERMAIN(dmxTest);
+
 #endif /* !ASM_SRC */
 
 /*

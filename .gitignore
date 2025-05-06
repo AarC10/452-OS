@@ -16,3 +16,6 @@ BuildImage
 *.img
 *FLAGS 
 Offsets
+networktest
+.vscode
+.idea

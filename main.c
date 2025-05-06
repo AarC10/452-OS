@@ -20,7 +20,7 @@
 // not used at the moment
 // #include <userids.h>
 #include <vm.h>
-
+#include <net/net.h>
 /*
 ** PRIVATE DEFINITIONS
 */
@@ -328,7 +328,7 @@ int main( void ) {
 	sio_init();     // serial i/o
 	sys_init();     // system call
 	user_init();    // user code handling
-
+  	// net_init();
 	cio_puts( "\nModule initialization complete.\n" );
 
 #if TRACING_INIT
