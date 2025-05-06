@@ -12,6 +12,15 @@
 // Glocal default HDA controller
 hda_t default_hda;
 
+static inline void hda_write32(hda_t* h, uint32_t off, uint32_t val) {
+	*(volatile uint32_t*)( (uint8_t*)h->regs + off ) = val;
+}
+
+static inline uint32_t hda_read32(hda_t* h, uint32_t off) {
+	return *(volatile uint32_t*)( (uint8_t*)h->regs + off );
+}
+
+
 // Given a handle to an HDA conteroller, print it's version and capabilities
 void print_controller_info(hda_t* hda) {
 	cio_printf("hda: controller v%d.%d, capabilities: 0x%x\n",
@@ -165,3 +174,26 @@ void hda_set_volume(hda_t* hda, uint8_t caddr, uint8_t nid, uint8_t volume,
 			payload, false);
 }
 
+int hda_setup_playback_stream(hda_t* hda, uint8_t stream,
+		void* bdl_addr, uint16_t lvi, uint16_t fmt)
+{
+	// stop stream & clear status
+	hda_write32(hda, HDA_SD_CTL(stream), 0);
+	hda_write32(hda, HDA_SD_STS(stream),
+			HDA_SD_STS_BDLT | HDA_SD_STS_FIFORDY);
+
+	// program buffer‐descriptor list address
+	hda_write32(hda, HDA_SD_BDLPL(stream), (uint32_t) bdl_addr);
+
+	// last valid index: number_of_entries–1
+	hda_write32(hda, HDA_SD_LVI(stream), lvi);
+
+	// stream format
+	hda_write32(hda, HDA_SD_FMT(stream), fmt);
+
+	// start DMA: run + IRQ on completion
+	hda_write32(hda, HDA_SD_CTL(stream),
+			HDA_SD_CTL_RUN | HDA_SD_CTL_IOCE);
+
+	return 0;
+}

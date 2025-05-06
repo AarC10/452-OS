@@ -79,6 +79,20 @@ typedef struct hda_regset {
 } hda_regset_t;
 #pragma pack(pop)
 
+// Helpers for variable MMIO stream registers
+#define HDA_SD_CTL(n)     (0x80 + (n)*0x20)
+#define HDA_SD_STS(n)     (0x84 + (n)*0x20)
+#define HDA_SD_BDLPL(n)   (0x88 + (n)*0x20)
+#define HDA_SD_BDLPU(n)   (0x8C + (n)*0x20)
+#define HDA_SD_LVI(n)     (0x90 + (n)*0x20)
+#define HDA_SD_FMT(n)     (0x100 + (n)*0x10)
+
+// Stream control and status bits
+#define HDA_SD_CTL_RUN    (1 << 1)
+#define HDA_SD_CTL_IOCE   (1 << 2)   // IRQ on buffer-complete
+#define HDA_SD_STS_BDLT   (1 << 2)   // buffer‐descriptor list trigger
+#define HDA_SD_STS_FIFORDY (1 << 4)  // FIFO ready
+
 // HDA controller
 typedef struct hda {
 	hda_regset_t* regs;
