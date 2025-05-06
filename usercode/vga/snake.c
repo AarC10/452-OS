@@ -19,6 +19,8 @@
 **
 ** Playable game of snake to demonstrate VGA driver capabilities.
 **
+** Author: Nicholas Merante <ncm2705@rit.edu>
+**
 */
 
 /// A cell on the grid

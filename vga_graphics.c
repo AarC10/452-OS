@@ -1,3 +1,18 @@
+/**
+ * @file vga_graphics.c
+ * @brief VGA graphics driver implementation for 320×200×256 mode (Mode 13h)
+ * @author Nicholas Merante <ncm2705@rit.edu>
+ *
+ * This file contains the implementation of low-level VGA graphics routines
+ * for Mode 13h (320×200, 256 colors). It provides direct pixel access, basic
+ * shapes rendering (lines, rectangles, circles, triangles), palette control,
+ * double buffering, sprite blitting with transparency, vertical sync handling,
+ * frame-based timing delays, and text rendering using an 8×8 bitmap font.
+ *
+ * All rendering operations are performed either directly to VGA memory or
+ * to a software backbuffer that can be flushed to screen via vga_render().
+ */
+
 #include <common.h>
 #include <clock.h> // for system_time, CLOCK_FREQ
 #include <lib.h>   // for umemcpy

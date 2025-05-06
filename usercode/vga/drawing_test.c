@@ -9,6 +9,8 @@
 **
 ** Draws various VGA primitives to the screen.
 **
+** Author: Nicholas Merante <ncm2705@rit.edu>
+**
 */
 
 USERMAIN(drawing_test)

@@ -1,6 +1,7 @@
 /**
  * @file vga_graphics.h
  * @brief VGA graphics driver interface for 320×200×256 mode
+ * @author Nicholas Merante <ncm2705@rit.edu>
  *
  * Provides low-level drawing primitives (pixels, lines, rectangles, circles, triangles),
  * palette control, software double-buffer management, sprite blitting with transparency,

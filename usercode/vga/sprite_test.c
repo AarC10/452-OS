@@ -9,6 +9,8 @@
 **
 ** Bouncing sprite demo to show double buffering and sprite blitter.
 **
+** Author: Nicholas Merante <ncm2705@rit.edu>
+**
 */
 
 // 8×8 smiley face pattern: palette index 1 (e.g. yellow) on transparent (0)

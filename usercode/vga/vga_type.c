@@ -11,6 +11,8 @@
 ** Proof of concept for console interaction in graphics mode; allows user to
 ** type characters to the screen and overflows to the next line.
 **
+** Author: Nicholas Merante <ncm2705@rit.edu>
+**
 */
 
 USERMAIN(vga_type)
