@@ -823,7 +823,7 @@ SYSIMPL(sleep) {
 ** Implements:
 **		int dmxwrite( uint_t port, uint8_t data[DMX_SLOTS] );
 **
-** Sends the given frame out of the specified port, returns
+** Sends the given packet out of the specified port, returns
 ** 0 on success, otherwise an error code is given
 */
 SYSIMPL(dmxwrite) {

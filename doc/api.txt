@@ -57,7 +57,7 @@ RETURN VALUE
 
 
 NAME
-    exec - Replace current process image
+    exec - Replace the memory image of a process
 
 SYNOPSIS
     void exec(uint_t what, char **args);
@@ -71,13 +71,13 @@ RETURN VALUE
 
 
 NAME
-    read - Read from an input channel
+    read - Read into a buffer from an input channel
 
 SYNOPSIS
-    int read(uint_t chan, void *buf, uint_t len);
+    int read(uint_t chan, void *buffer, uint_t length);
 
 DESCRIPTION
-    Reads up to 'len' bytes into 'buf' from 'chan'.
+    Reads up to 'length' bytes into 'buffer' from 'chan'.
     CHAN_CIO is non-blocking; CHAN_SIO may block.
 
 RETURN VALUE
@@ -89,10 +89,10 @@ NAME
     write - Write to an output channel
 
 SYNOPSIS
-    int write(uint_t chan, const void *buf, uint_t len);
+    int write(uint_t chan, const void *buffer, uint_t length);
 
 DESCRIPTION
-    Writes 'len' bytes from 'buf' to 'chan'.
+    Writes 'length' bytes from 'buffer' to 'chan'.
 
 RETURN VALUE
     Number of bytes written, or E_BAD_CHAN.
@@ -162,7 +162,7 @@ SYNOPSIS
     int32_t kill(uint_t pid);
 
 DESCRIPTION
-    Terminates the specified process, or self if pid == current.
+    Terminates the specified process or the calling process if PID is 0.
 
 RETURN VALUE
     0 on success.
@@ -188,44 +188,45 @@ RETURN VALUE
 // -----------------------------------------------------------------------------
 
 NAME
-    dmxwrite - Send DMX512 frame
+    dmxwrite - Writes DMX data to the specified serial port
 
 SYNOPSIS
     int dmxwrite(uint_t port, uint8_t data[DMX_SLOTS]);
 
 DESCRIPTION
-    Sends a DMX frame out of the given serial port.
+    Sends a DMX packet out of the given serial port.
 
 RETURN VALUE
     0 on success.
+    Error code otherwise.
 
 
 
 NAME
-    eth_tx - Transmit Ethernet frame
+    eth_tx - Transmits an Ethernet frame
 
 SYNOPSIS
-    int eth_tx(const uint8_t *frame, uint16_t length);
+    int eth_tx(const void *frame, uint16_t length);
 
 DESCRIPTION
     Sends an Ethernet frame using the i8255x NIC.
 
 RETURN VALUE
     0 on success.
-    E_BAD_PARAM if frame is too long.
+    Error code otherwise.
 
 
 
 NAME
-    eth_rx - Receive Ethernet frame
+    eth_rx - Receive an Ethernet frame
 
 SYNOPSIS
-    int eth_rx(uint8_t *buffer, uint16_t bufsize);
+    int eth_rx(void *buffer, uint16_t bufsize);
 
 DESCRIPTION
-    Receives a frame into 'buffer' if available.
+    Receives an Ethernet frame from the i8255x NIC.
 
 RETURN VALUE
     Number of bytes received.
     0 if no frame.
-    E_BAD_PARAM if buffer too small.
+    Error code otherwise.

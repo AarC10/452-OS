@@ -486,12 +486,14 @@ int sleep( uint32_t ms );
 void bogus( void );
 
 /**
-** dmxwrite(uint_t port, uint8_t data[DMX_SLOTS]) 0 writes DMX frame to port
+** dmxwrite - writes a DMX packet to port
+**
+** usage:	dmxwrite(uint_t port, uint8_t data[DMX_SLOTS])
 **
 ** @param port	The port to write to
-** @param data	The DMX frame data to write
+** @param data	The DMX data to write
 **
-** @return	0 if written successfully, otherwise an error code results
+** @return	0 if written successfully, else an error code
 */
 int dmxwrite( uint_t port, uint8_t data[DMX_SLOTS] );
 
