@@ -1,0 +1,231 @@
+--------------------------------------------------------------------------------
+CSCI-452 System Call Reference Manual
+Spring 2025 Kernel — Section 2: System Calls
+Team 3
+--------------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Baseline OS syscalls
+// -----------------------------------------------------------------------------
+
+NAME
+    exit - Terminate the calling process
+
+SYNOPSIS
+    void exit(int32_t status);
+
+DESCRIPTION
+    Ends the calling process and sets its exit status.
+    The parent can retrieve the status via waitpid().
+
+RETURN VALUE
+    Does not return.
+
+
+
+NAME
+    waitpid - Wait for a child process to terminate
+
+SYNOPSIS
+    int waitpid(uint_t pid, int32_t *status);
+
+DESCRIPTION
+    Waits for a specific child (pid != 0) or any child (pid == 0)
+    to exit. If 'status' is not NULL, stores the exit code there.
+
+RETURN VALUE
+    PID of terminated child on success.
+    E_NO_CHILDREN if no children exist.
+    E_BAD_PARAM for invalid arguments.
+
+
+
+NAME
+    fork - Create a new process
+
+SYNOPSIS
+    int fork(void);
+
+DESCRIPTION
+    Creates a new process that is a duplicate of the current one.
+    Parent gets child’s PID. Child gets 0.
+
+RETURN VALUE
+    Child PID in parent, 0 in child.
+    E_NO_PROCS if no space or memory.
+
+
+
+NAME
+    exec - Replace current process image
+
+SYNOPSIS
+    void exec(uint_t what, char **args);
+
+DESCRIPTION
+    Loads and executes a new program image in place of the current one.
+
+RETURN VALUE
+    Only returns on failure.
+
+
+
+NAME
+    read - Read from an input channel
+
+SYNOPSIS
+    int read(uint_t chan, void *buf, uint_t len);
+
+DESCRIPTION
+    Reads up to 'len' bytes into 'buf' from 'chan'.
+    CHAN_CIO is non-blocking; CHAN_SIO may block.
+
+RETURN VALUE
+    Number of bytes read, or E_BAD_PARAM for invalid channel.
+
+
+
+NAME
+    write - Write to an output channel
+
+SYNOPSIS
+    int write(uint_t chan, const void *buf, uint_t len);
+
+DESCRIPTION
+    Writes 'len' bytes from 'buf' to 'chan'.
+
+RETURN VALUE
+    Number of bytes written, or E_BAD_CHAN.
+
+
+
+NAME
+    getpid - Get current process ID
+
+SYNOPSIS
+    uint_t getpid(void);
+
+DESCRIPTION
+    Returns the PID of the calling process.
+
+
+
+NAME
+    getppid - Get parent process ID
+
+SYNOPSIS
+    uint_t getppid(void);
+
+DESCRIPTION
+    Returns the PID of the calling process’s parent.
+
+
+
+NAME
+    gettime - Get current system time
+
+SYNOPSIS
+    uint32_t gettime(void);
+
+DESCRIPTION
+    Returns system time in milliseconds since boot.
+
+
+
+NAME
+    getprio - Get scheduling priority
+
+SYNOPSIS
+    int getprio(void);
+
+DESCRIPTION
+    Returns the priority of the calling process.
+
+
+
+NAME
+    setprio - Set scheduling priority
+
+SYNOPSIS
+    int setprio(int new);
+
+DESCRIPTION
+    Sets the process’s priority to 'new'.
+    Returns the previous priority.
+
+
+
+NAME
+    kill - Terminate a process
+
+SYNOPSIS
+    int32_t kill(uint_t pid);
+
+DESCRIPTION
+    Terminates the specified process, or self if pid == current.
+
+RETURN VALUE
+    0 on success.
+    E_NOT_FOUND if pid is not valid.
+    E_FAILURE for invalid PID.
+
+
+
+NAME
+    sleep - Sleep for a duration
+
+SYNOPSIS
+    uint_t sleep(uint_t ms);
+
+DESCRIPTION
+    Sleeps for 'ms' milliseconds. If ms == 0, yields CPU.
+
+RETURN VALUE
+    Actual duration slept.
+
+// -----------------------------------------------------------------------------
+// Team 3 Additional OS syscalls
+// -----------------------------------------------------------------------------
+
+NAME
+    dmxwrite - Send DMX512 frame
+
+SYNOPSIS
+    int dmxwrite(uint_t port, uint8_t data[DMX_SLOTS]);
+
+DESCRIPTION
+    Sends a DMX frame out of the given serial port.
+
+RETURN VALUE
+    0 on success.
+
+
+
+NAME
+    eth_tx - Transmit Ethernet frame
+
+SYNOPSIS
+    int eth_tx(const uint8_t *frame, uint16_t length);
+
+DESCRIPTION
+    Sends an Ethernet frame using the i8255x NIC.
+
+RETURN VALUE
+    0 on success.
+    E_BAD_PARAM if frame is too long.
+
+
+
+NAME
+    eth_rx - Receive Ethernet frame
+
+SYNOPSIS
+    int eth_rx(uint8_t *buffer, uint16_t bufsize);
+
+DESCRIPTION
+    Receives a frame into 'buffer' if available.
+
+RETURN VALUE
+    Number of bytes received.
+    0 if no frame.
+    E_BAD_PARAM if buffer too small.
