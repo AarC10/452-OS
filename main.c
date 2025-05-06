@@ -393,7 +393,7 @@ int main( void ) {
 
 	cio_puts( " done.\n" );
 
-	delay( DELAY_1_SEC );
+	delay( DELAY_10_SEC );
 
 #ifdef TRACE_CX
 
