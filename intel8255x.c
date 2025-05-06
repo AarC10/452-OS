@@ -7,7 +7,6 @@
 
 #include <common.h>
 #include <drivers/intel8255x.h>
-#include <drivers/intel8255x_ops.h>
 #include <kmem.h>
 #include <types.h>
 #include <x86/pci.h>

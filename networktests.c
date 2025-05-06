@@ -1,3 +1,9 @@
+/**
+ * @file networktests.c
+ * @author Aaron Chan
+ * @brief Tests for the network stack by serializing a buffer through UDP-IPv4-Eth II
+ *        Dumps resulting packet for validation
+ */
 #include "cio.h"
 #include "klib.h"
 #include "net/ethernet.h"
