@@ -89,10 +89,10 @@ static void setcursor( void ) {
 
 	addr = (unsigned)( y * SCREEN_X_SIZE + curr_x );
 
-	outb( VGA_CTRL_IX_ADDR, VGA_CTRL_CUR_HIGH );
-	outb( VGA_CTRL_IX_DATA, ( addr >> 8 ) & BMASK8 );
-	outb( VGA_CTRL_IX_ADDR, VGA_CTRL_CUR_LOW );
-	outb( VGA_CTRL_IX_DATA, addr & BMASK8 );
+	// outb( VGA_CTRL_IX_ADDR, VGA_CTRL_CUR_HIGH );
+	// outb( VGA_CTRL_IX_DATA, ( addr >> 8 ) & BMASK8 );
+	// outb( VGA_CTRL_IX_ADDR, VGA_CTRL_CUR_LOW );
+	// outb( VGA_CTRL_IX_DATA, addr & BMASK8 );
 }
 
 /*
@@ -102,6 +102,7 @@ static void putchar_at( unsigned int x, unsigned int y, unsigned int c ) {
 	/*
 	** If x or y is too big or small, don't do any output.
 	*/
+#if !defined(REDIRECT_ALL_TEXT_TO_SERIAL)
 	if( x <= max_x && y <= max_y ) {
 		unsigned short *addr = VIDEO_ADDR( x, y );
 
@@ -115,22 +116,24 @@ static void putchar_at( unsigned int x, unsigned int y, unsigned int c ) {
 		} else {
 			*addr = (unsigned short)c | VGA_DEFAULT;
 		}
-#ifdef CIO_DUP2_SIO
-		// only dup if we're within the scrolling region
-		if( x < scroll_min_x || x > scroll_max_x ||
-			y < scroll_min_y || y > scroll_max_y ) {
-			return;
-		}
-		if( ISPRINT(c) ) {
-			// only the 'character' part
-			sio_writec( c & 0xff );
-		} else {
-			char buf[16];
-			sprint( buf, "\\x%02x", c & 0xff );
-			sio_write( buf, 4 );
-		}
-#endif
 	}
+#endif
+
+#if CIO_DUP2_SIO
+	// only dup if we're within the scrolling region
+	if( x < scroll_min_x || x > scroll_max_x ||
+		y < scroll_min_y || y > scroll_max_y ) {
+		return;
+	}
+	if( ISPRINT(c) ) {
+		// only the 'character' part
+		sio_writec( c & 0xff );
+	} else {
+		char buf[16];
+		sprint( buf, "\\x%02x", c & 0xff );
+		sio_write( buf, 4 );
+	}
+#endif
 }
 
 /*
@@ -787,3 +790,8 @@ int main() {
 
 int curr_x, curr_y, max_x, max_y;
 #endif
+
+int cio_kbhit(void)
+{
+    return (next_char != next_space);
+}

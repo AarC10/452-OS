@@ -52,6 +52,12 @@ bootentry:
 	movw	$BOOT_SP_DISP, %ax
 	movw	%ax, %sp
 
+/* 
+** Set video mode to 0x13 (graphics)
+*/ 
+    movw    $0x0013, %ax
+    int     $0x10
+
 /*
 ** Next, verify that the disk is there and working.
 */
@@ -234,11 +240,11 @@ repeat:
 
 	movb	$BV_W_ADV, %ah	/* write and advance cursor */
 	movw	$0x07, %bx	/* page 0, white on blank, no blink */
-	orb	%al, %al	/* AL is character to write */
-	jz	getOut		/* if we've reached the NUL, get out */
+	orb	    %al, %al	/* AL is character to write */
+	jz	    getOut		/* if we've reached the NUL, get out */
 
-	int	$BIOS_VIDEO	/* otherwise, print and repeat */
-	jmp	repeat	
+	int	    $BIOS_VIDEO	/* otherwise, print and repeat */
+	jmp	    repeat	
 
 getOut:				/* we're done, so return */
 	popw	%bx

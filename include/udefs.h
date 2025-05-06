@@ -79,11 +79,12 @@
 USERMAIN(init);    USERMAIN(idle);    USERMAIN(shell);
 
 // these are started by other processes (e.g., the shell)
-USERMAIN(progABC); USERMAIN(progDE);  USERMAIN(progFG); USERMAIN(progH);
-USERMAIN(progI);   USERMAIN(progJ);   USERMAIN(progKL); USERMAIN(progMN);
-USERMAIN(progO);   USERMAIN(progP);   USERMAIN(progQ);  USERMAIN(progR);
-USERMAIN(progS);   USERMAIN(progTUV); USERMAIN(progW);  USERMAIN(progX);
-USERMAIN(progY);   USERMAIN(progZ);
+USERMAIN(progABC); USERMAIN(progDE);  USERMAIN(progFG);     USERMAIN(progH);
+USERMAIN(progI);   USERMAIN(progJ);   USERMAIN(progKL);     USERMAIN(progMN);
+USERMAIN(progO);   USERMAIN(progP);   USERMAIN(progQ);      USERMAIN(progR);
+USERMAIN(progS);   USERMAIN(progTUV); USERMAIN(progW);      USERMAIN(progX);
+USERMAIN(progY);   USERMAIN(progZ);   USERMAIN(color_test); USERMAIN(drawing_test);
+USERMAIN(sprite_test); USERMAIN(vga_type); USERMAIN(snake);
 
 USERMAIN(dmxTest);
 
@@ -136,5 +137,10 @@ USERMAIN(dmxTest);
 #define SPAWN_T
 #define SPAWN_U
 #define SPAWN_V
+#define SPAWN_COLOR_TEST
+#define SPAWN_DRAWING_TEST
+#define SPAWN_SPRITE_TEST
+#define SPAWN_VGA_TYPE
+#define SPAWN_SNAKE
 
 #endif
