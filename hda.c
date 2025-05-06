@@ -200,7 +200,7 @@ void hda_init() {
 	uint8_t bus, device, func, irq;
 	void* io_base;
 
-	uint8_t result = pci_find_device(0x8086, 0x2668, &bus, &device, &func, &io_base, &irq);
+	uint8_t result = pci_find_device_by_class(0x04, 0x03, &bus, &device, &func, &io_base, &irq);
 	if (result == 0) {
 		cio_printf("found intel HDA device on bus %d, device %d, func %d, base %08x\n",
 			bus, device, func, io_base);

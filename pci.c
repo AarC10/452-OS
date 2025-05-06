@@ -29,7 +29,7 @@ static uint32_t pci_read_config(uint8_t bus, uint8_t device, uint8_t func, uint8
  * Given the provided vendor_id and device_id, return the bus, device, and func numbers
  * of the first found matching PCI device.
  */
-uint8_t pci_find_device(
+uint8_t pci_find_device_by_id(
 		uint16_t vendor_id, uint16_t device_id,
 		uint8_t* bus, uint8_t* dev, uint8_t* func,
 		void** io_base, uint8_t* irq)
@@ -51,6 +51,38 @@ uint8_t pci_find_device(
 
 						return 0;
 					}
+				}
+			}
+		}
+	}
+	return 1;
+}
+
+/**
+ * Given the provided class code, return the bus, device, and func numbers
+ * of the first found matching PCI device.
+ */
+uint8_t pci_find_device_by_class(
+		uint8_t base_class, uint8_t sub_class,
+		uint8_t* bus, uint8_t* dev, uint8_t* func,
+		void** io_base, uint8_t* irq)
+{
+	for (*bus = 0; *bus < PCI_NUM_BUSES - 1; (*bus)++) {
+		for (*dev = 0; *dev < PCI_NUM_DEVICES - 1; (*dev)++) {
+			for (*func = 0; *func < PCI_NUM_FUNCS - 1; (*func)++) {
+				uint32_t found_class = pci_read_config(*bus, *dev, *func, 0x8) >> 8;
+				if (found_class != 0xFFFFFF) cio_printf("%d.%d.%d - 0x%06x    ", *bus, *dev, *func, found_class);
+				uint8_t found_base = found_class >> 16;
+				uint8_t found_sub = (found_class >> 8) & 0xFF;
+				if(found_base == base_class && found_sub == sub_class) {
+					// Get I/O base address
+					uint32_t io_bar = pci_read_config(*bus, *dev, *func, 0x10);
+					*io_base = (void*)(io_bar & ~0x3); /* Mask off the low bits */
+
+					// Get interrupt line
+					*irq = pci_read_config(*bus, *dev, *func, 0x3C) & 0xFF;
+
+					return 0;
 				}
 			}
 		}
