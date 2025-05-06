@@ -27,14 +27,14 @@ static proc_t in_spawn_table[] = {
 	// // drawing_test for various VGA drawing function testing
 	// PROCENT( drawing_test, PRIO_HIGH, "&", "drawing_test" ),
 
-	// // sprite_test for testing drawing of sprites to the screen
-	// PROCENT( sprite_test, PRIO_HIGH, "&", "sprite_test" ),
+	// sprite_test for testing drawing of sprites to the screen
+	PROCENT( sprite_test, PRIO_HIGH, "&", "sprite_test" ),
 
 	// // vga_type for testing keyboard input and printing text
 	// PROCENT( vga_type, PRIO_HIGH, "&", "vga_type" ),
 
-	// snake for playing snake game
-	PROCENT( snake, PRIO_HIGH, "&", "snake" ),
+	// // snake for playing snake game
+	// PROCENT( snake, PRIO_HIGH, "&", "snake" ),
 #else
 	// the idle process; it runs at Deferred priority,
 	// so it will only be dispatched when there is
