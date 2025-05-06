@@ -18,7 +18,7 @@ Purpose:    Provides a low-level 2D graphics API for Mode 13h (320x200x256 VGA)
 ===============================================================================
 OVERVIEW
 ===============================================================================
-The VGA graphics driver implements a ramebuffer renderer for 320×200 resolution 
+The VGA graphics driver implements a framebuffer renderer for 320×200 resolution 
 with 256 colors (Mode 13h). It allows direct pixel-level access to VGA memory 
 and supports both immediate and double-buffered rendering. It is intended for 
 games, animations, and demonstrations in CSCI-452.
