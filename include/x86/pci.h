@@ -79,16 +79,14 @@
 #define PCI_VENDOR_MASK 0xffff
 #define PCI_VENDOR(id) (((id) >> PCI_VENDOR_SHIFT) & PCI_VENDOR_MASK)
 
-enum pci_class_codes {
+enum pci_class_code {
     PCI_UNCLASSIFIED = 0x0,
     PCI_MASS_STORAGE_CONTROLLER = 0x1,
     PCI_NETWORK_CONTROLLER = 0x2,
     PCI_DISPLAY_CONTROLLER = 0x3,
-    PCI_MULTIMEDIA_CONTROLLER = 0x5,
+    PCI_MULTIMEDIA_CONTROLLER = 0x4,
     PCI_CLASS_CODES_COUNT,
     // Note there are more, but unknown if we are using the rest
-    // Also, currently only one in use for this OS is most likely only net
-    // ctrler
 };
 
 enum pci_header_type {
