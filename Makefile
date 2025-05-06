@@ -111,8 +111,7 @@ GEN_OPTIONS = -DOS_CONFIG -DSYSTEM_STATUS=10 -DFORCE_INLINING \
 # If not defined, SANITY defaults to 9999.
 #
 
-# DBG_OPTIONS = -DRPT_INT_UNEXP -DTRACE_CX -DCIO_DUP2_SIO
-DBG_OPTIONS = -DREDIRECT_ALL_TEXT_TO_SERIAL
+DBG_OPTIONS = -DRPT_INT_UNEXP -DTRACE_CX -DCIO_DUP2_SIO
 
 #
 # T_ options are used to define bits in a "tracing" bitmask, to allow
@@ -138,7 +137,7 @@ DBG_OPTIONS = -DREDIRECT_ALL_TEXT_TO_SERIAL
 #	make EXTRAS=-H
 #
 
-# TRACE_OPTIONS = -DT_INIT
+TRACE_OPTIONS = -DT_INIT
 
 USER_OPTIONS = $(GEN_OPTIONS) $(DBG_OPTIONS) $(TRACE_OPTIONS) $(EXTRAS)
 
@@ -365,6 +364,11 @@ qemu-gdb: disk.img .gdbinit
 qemu-nox-gdb: disk.img .gdbinit
 	@echo "*** Now run 'gdb'." 1>&2
 	$(QEMU) -nographic $(QEMUOPTS) -S $(QEMUGDB)
+
+qemu-vga: EXTRAS=-DREDIRECT_ALL_TEXT_TO_SERIAL -DVGA_GRAPHICS_MODE
+qemu-vga: TRACE_OPTIONS=
+qemu-vga: DBG_OPTIONS=
+qemu-vga: qemu
 
 #
 # Special rules for creating the utility programs.  These are required
