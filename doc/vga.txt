@@ -1,10 +1,207 @@
---------------------------------------------------------------------------------
-Systems Programming VGA description
+===============================================================================
+Module: VGA Graphics Driver (vga_graphics)
 
 File:       doc/vga.txt
-Author:     Nicholas Merante
+Author:     Nicholas Merante <ncm2705@rit.edu>
 Version:    
 Date:       3/23/25
---------------------------------------------------------------------------------
+===============================================================================
+
+Location:   src:        ./vga_graphics.c
+            headers:    ./include/vga/
+            usercode:   ./usercode/vga/
+
+Purpose:    Provides a low-level 2D graphics API for Mode 13h (320x200x256 VGA)
+-------------------------------------------------------------------------------
 
 
+===============================================================================
+OVERVIEW
+===============================================================================
+The VGA graphics driver implements a ramebuffer renderer for 320×200 resolution 
+with 256 colors (Mode 13h). It allows direct pixel-level access to VGA memory 
+and supports both immediate and double-buffered rendering. It is intended for 
+games, animations, and demonstrations in CSCI-452.
+
+
+===============================================================================
+DESIGN GOALS
+===============================================================================
+- Provide low-level access to Mode 13h VGA framebuffer (0xA0000)
+- Enable simple pixel-based graphics
+- Support double buffering for flicker-free animation
+- Offer common 2D primitives (pixels, lines, rectangles, circles, triangles)
+- Include basic text rendering using an 8x8 font
+- Provide palette control for color effects
+- Facilitate sprite blitting with transparency
+- Include vertical sync support to avoid screen tearing
+- Integrate smoothly with system time and delays
+
+
+===============================================================================
+MAJOR DATA STRUCTURES
+===============================================================================
+- `vga_backbuffer`: A 64KB (VGA_VRAM_SIZE) memory buffer representing off-screen
+  rendering surface for double-buffered drawing. Modified via functions ending
+  in `_buf()`.
+
+- `font8x8`: A global 8×8 bitmap font array used to render characters for
+  debugging and UI display. Accessed using `font8x8_get()`.
+
+
+===============================================================================
+API FUNCTIONS (Declared in vga_graphics.h)
+===============================================================================
+
+[PIXEL DRAWING]
+-------------------------------------------------------------------------------
+void vga_put_pixel(int x, int y, uint8_t color)
+    Draws a pixel directly to VGA memory.
+
+void vga_put_pixel_buf(int x, int y, uint8_t color)
+    Draws a pixel to the software backbuffer.
+
+[SHAPE AND PRIMITIVE DRAWING]
+-------------------------------------------------------------------------------
+void vga_clear(uint8_t color)
+    Clears the entire screen to the specified color.
+
+void vga_clear_buf(uint8_t color)
+    Clears the backbuffer to the specified color.
+
+void vga_draw_line(int x0, int y0, int x1, int y1, uint8_t color)
+    Draws a line using Bresenham’s algorithm.
+
+void vga_draw_rect(int x, int y, int w, int h, uint8_t color, int filled)
+    Draws a rectangle on-screen; can be filled or outlined.
+
+void vga_draw_rect_buf(int x, int y, int w, int h, uint8_t color, int filled)
+    Same as above, but draws to the backbuffer.
+
+void vga_draw_circle(int cx, int cy, int r, uint8_t color, int filled)
+    Draws a filled or hollow circle using midpoint algorithm.
+
+void vga_draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, uint8_t color)
+    Draws an outlined triangle using three lines.
+
+[TEXT RENDERING]
+-------------------------------------------------------------------------------
+void vga_draw_char(int x, int y, char c, uint8_t color)
+    Renders an 8x8 bitmap ASCII character at (x, y).
+
+void vga_draw_string(int x, int y, const char *str, uint8_t color)
+    Draws a string with newlines supported; wraps lines when needed.
+
+[SPRITE RENDERING]
+-------------------------------------------------------------------------------
+void vga_blit(const uint8_t *sprite, int w, int h, int x0, int y0, uint8_t transparent)
+    Draws a sprite with transparent color support to the backbuffer.
+
+[TIMING AND VSYNC]
+-------------------------------------------------------------------------------
+void vga_wait_vsync(void)
+    Waits for the vertical retrace period to start.
+
+void vga_delay_frames(uint32_t frames)
+    Delays by a number of display refresh frames.
+
+void vga_delay_ms(uint32_t ms)
+    Delays for a given number of milliseconds (approx).
+
+void vga_sleep_ms(uint32_t ms)
+    Delays using `system_time`; blocks CPU until timeout.
+
+[PALETTE CONTROL]
+-------------------------------------------------------------------------------
+void vga_set_palette_color(uint8_t index, uint8_t r, uint8_t g, uint8_t b)
+    Sets a VGA palette index to the given RGB color (6-bit per channel).
+
+[RENDERING CONTROL]
+-------------------------------------------------------------------------------
+void vga_render(void)
+    Flushes the backbuffer contents to the VGA framebuffer (0xA0000).
+
+
+===============================================================================
+INTERNALS & IMPLEMENTATION DETAILS
+===============================================================================
+
+[VIDEO MEMORY ACCESS]
+The driver operates in VGA Mode 13h (320×200, 256 colors) using direct memory
+access to address 0xA0000. No BIOS or VESA BIOS Extensions (VBE) are used.
+It assumes the display is already set to Mode 13h at runtime, which occurs in
+the file `boot.S`.
+
+[PORT I/O]
+Hardware I/O ports are used for VGA control:
+- Port 0x3DA is polled for vertical retrace status (vsync).
+- Ports 0x3C8 and 0x3C9 are used to set RGB palette entries.
+
+[TIMING SUPPORT]
+Timing-related functions rely on:
+- `system_time` (a global millisecond counter)
+- `CLOCK_FREQ` (CPU ticks per second)
+
+VSync-based frame timing is achieved using polling loops around port 0x3DA.
+
+[DOUBLE BUFFERING]
+The driver maintains a 64KB software backbuffer (`vga_backbuffer`) in system
+RAM. All drawing operations targeting this buffer are flushed to video memory
+using `vga_render()`, which provides smooth, flicker-free updates.
+
+[TRANSPARENCY HANDLING]
+Sprites can be rendered with a specified transparent color index. Pixels in the
+sprite matching this color are skipped during blitting to the screen or buffer.
+
+[FONT SYSTEM]
+Text rendering uses an embedded 8×8 bitmap font defined in `font8x8.h`.
+Each character is an 8-byte glyph (one byte per row), and is drawn bitwise
+using `vga_draw_char()`.
+
+[INLINE ASSEMBLY]
+The driver uses inline assembly in `inb()` and `outb()` to perform port I/O.
+These are low-level wrappers for accessing hardware registers safely and
+portably across the kernel.
+
+
+===============================================================================
+BACKBUFFER USAGE
+===============================================================================
+1. Use `vga_clear_buf()` to prepare the screen and set it to a certain color.
+2. Draw shapes or sprites using `_buf()` functions.
+3. Call `vga_render()` to display the final image.
+4. Use `vga_wait_vsync()` for consistent animation timing.
+5. Render text with `vga_draw_string()` to overlay debug info or UI.
+
+
+===============================================================================
+LIMITATIONS
+===============================================================================
+- Only supports 320×200 mode.
+- Overwrites text mode console and doesn't reimplement console functionality; 
+  would need to be added in the future to be fully compatible with other 
+  modules.
+- No Z-ordering or layering; all rendering is manual.
+- Font is fixed-width and monochrome (1-bit per pixel).
+
+
+===============================================================================
+KNOWN USES
+===============================================================================
+- Used by `usercode/vga/`:
+    `snake.c`
+    `sprite_test.c`
+    `vga_type.c`
+    `drawing_test.c`
+    `color_test.c`
+- Integrated with system timers and system calls for interactive graphics.
+- Allows projects to build games, simulations, or animated graphics.
+
+
+===============================================================================
+DEPENDENCIES
+===============================================================================
+- `clock.h`: Provides `system_time` and `CLOCK_FREQ`
+- `lib.h`: For `umemcpy()` used in `vga_render()`
+- `font8x8.h`: Contains 8×8 bitmap font for text drawing
+-------------------------------------------------------------------------------
