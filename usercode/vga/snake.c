@@ -2,17 +2,24 @@
 #define SNAKE_C_
 
 #include <common.h>
-#include <cio.h>   ///< for cio_getchar(), cio_kbhit()
-#include <clock.h> ///< for system_time
-#include "vga_graphics.h"
+#include <cio.h>                                    ///< for cio_getchar(), cio_kbhit()
+#include <clock.h>                                  ///< for system_time RNG
+#include "vga/vga_graphics.h"
 
-#define CELL 8                             ///< pixels per grid cell
-#define BORDER_CELLS 1                     ///< thickness of permanent wall
-#define GRID_W (VGA_WIDTH / CELL)          ///< total cells across
-#define GRID_H (VGA_HEIGHT / CELL)         ///< total cells down
-#define PLAY_W (GRID_W - 2 * BORDER_CELLS) ///< playable cells across
-#define PLAY_H (GRID_H - 2 * BORDER_CELLS) ///< playable cells down
-#define MAX_LEN (PLAY_W * PLAY_H)          ///< max snake length
+#define CELL            8                           ///< pixels per grid cell
+#define BORDER_CELLS    1                           ///< thickness of permanent wall
+#define GRID_W          (VGA_WIDTH / CELL)          ///< total cells across
+#define GRID_H          (VGA_HEIGHT / CELL)         ///< total cells down
+#define PLAY_W          (GRID_W - 2 * BORDER_CELLS) ///< playable cells across
+#define PLAY_H          (GRID_H - 2 * BORDER_CELLS) ///< playable cells down
+#define MAX_LEN         (PLAY_W * PLAY_H)           ///< max snake length
+
+/**
+** User function: snake
+**
+** Playable game of snake to demonstrate VGA driver capabilities.
+**
+*/
 
 /// A cell on the grid
 typedef struct
@@ -59,7 +66,7 @@ static void place_food(void)
     food = p;
 }
 
-/// Int → ASCII
+/// Int to ASCII
 static void int_to_str(int v, char *out)
 {
     if (v == 0)
@@ -82,15 +89,15 @@ static void int_to_str(int v, char *out)
 
 USERMAIN(snake)
 {
-    // draw a permanent white border, once
+    // Draw a permanent white border
     vga_clear_buf(VGA_COLOR_BLACK);
-    // top and bottom border rows
+    // Top and bottom border rows
     vga_draw_rect_buf(0, 0, VGA_WIDTH, CELL, VGA_COLOR_WHITE, 1);
     vga_draw_rect_buf(0, VGA_HEIGHT - CELL, VGA_WIDTH, CELL, VGA_COLOR_WHITE, 1);
-    // left and right border cols
+    // Left and right border cols
     vga_draw_rect_buf(0, 0, CELL, VGA_HEIGHT, VGA_COLOR_WHITE, 1);
     vga_draw_rect_buf(VGA_WIDTH - CELL, 0, CELL, VGA_HEIGHT, VGA_COLOR_WHITE, 1);
-    // title and prompt
+    // Title and prompt
     const char *title = "SNAKE";
     int tx = (VGA_WIDTH - ustrlen(title) * 8) / 2;
     int ty = (VGA_HEIGHT / 2) - 16;
@@ -104,7 +111,7 @@ USERMAIN(snake)
     vga_render();
     vga_wait_vsync();
 
-    // wait for ENTER
+    // Wait for ENTER
     int c;
     do
     {
@@ -113,7 +120,7 @@ USERMAIN(snake)
 
     while (1)
     {
-        // init snake in the *playable* center
+        // Init snake in the *playable* center
         rng_state = system_time;
         snake_length = 5;
         int cx = BORDER_CELLS + PLAY_W / 2;
@@ -127,14 +134,14 @@ USERMAIN(snake)
         dir_y = 0;
         place_food();
 
-        // game loop
+        // Game loop
         int running = 1;
         while (running)
         {
             if (cio_kbhit())
             {
                 c = cio_getchar();
-                // arrow codes in the 50s plus WASD
+                // Arrow codes in the 50s are for arrows, plus WASD
                 if (c == 27)
                 {
                     running = 0;
@@ -162,13 +169,13 @@ USERMAIN(snake)
                 }
             }
 
-            // move body
+            // Move body
             for (int i = snake_length; i > 0; --i)
                 snake_body[i] = snake_body[i - 1];
             snake_body[0].x += dir_x;
             snake_body[0].y += dir_y;
 
-            // collisions with border
+            // Collisions with border
             if (snake_body[0].x < BORDER_CELLS ||
                 snake_body[0].x >= GRID_W - BORDER_CELLS ||
                 snake_body[0].y < BORDER_CELLS ||
@@ -176,7 +183,7 @@ USERMAIN(snake)
             {
                 running = 0;
             }
-            // self collision
+            // Self collision
             for (int i = 1; i < snake_length && running; ++i)
                 if (snake_body[i].x == snake_body[0].x &&
                     snake_body[i].y == snake_body[0].y)
@@ -184,7 +191,7 @@ USERMAIN(snake)
             if (!running)
                 break;
 
-            // eat food?
+            // Eat food?
             if (snake_body[0].x == food.x &&
                 snake_body[0].y == food.y)
             {
@@ -193,19 +200,19 @@ USERMAIN(snake)
                 place_food();
             }
 
-            // clear *play area* only
+            // Clear play area only
             vga_draw_rect_buf(CELL, CELL,
                               CELL * PLAY_W, CELL * PLAY_H,
                               VGA_COLOR_DARK_GREY, 1);
 
-            // draw food & snake
+            // Draw food & snake
             draw_cell(food.x, food.y, VGA_COLOR_RED);
             for (int i = 0; i < snake_length; ++i)
                 draw_cell(snake_body[i].x,
                           snake_body[i].y,
                           VGA_COLOR_GREEN);
 
-            // re-draw the fixed border
+            // Re-draw the fixed border
             vga_draw_rect_buf(0, 0, VGA_WIDTH, CELL, VGA_COLOR_WHITE, 1);
             vga_draw_rect_buf(0, VGA_HEIGHT - CELL, VGA_WIDTH, CELL, VGA_COLOR_WHITE, 1);
             vga_draw_rect_buf(0, 0, CELL, VGA_HEIGHT, VGA_COLOR_WHITE, 1);
@@ -218,15 +225,15 @@ USERMAIN(snake)
             vga_sleep_ms(80);
         }
 
-        // game over: clear *everything* (including stray rows)
+        // Game over: clear *everything* (including stray rows)
         vga_clear_buf(VGA_COLOR_BLACK);
-        // re-draw border
+        // Re-draw border
         vga_draw_rect_buf(0, 0, VGA_WIDTH, CELL, VGA_COLOR_WHITE, 1);
         vga_draw_rect_buf(0, VGA_HEIGHT - CELL, VGA_WIDTH, CELL, VGA_COLOR_WHITE, 1);
         vga_draw_rect_buf(0, 0, CELL, VGA_HEIGHT, VGA_COLOR_WHITE, 1);
         vga_draw_rect_buf(VGA_WIDTH - CELL, 0, CELL, VGA_HEIGHT, VGA_COLOR_WHITE, 1);
 
-        // messages
+        // Messages
         const char *go = "GAME OVER!";
         int go_x = (VGA_WIDTH - ustrlen(go) * 8) / 2;
         int go_y = VGA_HEIGHT / 2 - 16;
@@ -247,7 +254,7 @@ USERMAIN(snake)
         vga_render();
         vga_wait_vsync();
 
-        // wait for ENTER
+        // Wait for ENTER
         do
         {
             c = cio_getchar();

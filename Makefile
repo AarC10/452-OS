@@ -29,9 +29,11 @@ OS_OBJS = $(OS_S_OBJ) $(OS_C_OBJ)
 # "Userland" files
 #
 
-USR_C_SRC = userland.c ulibc.c
-USR_C_OBJ = userland.o ulibc.o
+# USR_VGA_SRC = $(wildcard usercode/vga/*.c)
+# USR_VGA_OBJ = $(USR_VGA_SRC:.c=.o)
 
+USR_C_SRC = userland.c ulibc.c # $(USR_VGA_SRC)
+USR_C_OBJ = userland.o ulibc.o # $(USR_VGA_OBJ)
 
 USR_S_SRC = ulibs.S
 USR_S_OBJ = ulibs.o

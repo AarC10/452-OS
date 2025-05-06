@@ -3,6 +3,7 @@
         "vga_graphics.h": "c",
         "common.h": "c",
         "defs.h": "c",
-        "random": "c"
+        "random": "c",
+        "font8x8.h": "c"
     }
 }

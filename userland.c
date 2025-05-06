@@ -118,21 +118,21 @@ typedef struct proc_s {
 #endif
 
 #if defined(SPAWN_COLOR_TEST)
-#include <usercode/color_test.c>
+#include <usercode/vga/color_test.c>
 #endif
 
 #if defined(SPAWN_DRAWING_TEST)
-#include <usercode/drawing_test.c>
+#include <usercode/vga/drawing_test.c>
 #endif
 
 #if defined(SPAWN_SPRITE_TEST)
-#include <usercode/sprite_test.c>
+#include <usercode/vga/sprite_test.c>
 #endif
 
 #if defined(SPAWN_VGA_TYPE)
-#include <usercode/vga_type.c>
+#include <usercode/vga/vga_type.c>
 #endif
 
 #if defined(SPAWN_SNAKE)
-#include <usercode/snake.c>
+#include <usercode/vga/snake.c>
 #endif

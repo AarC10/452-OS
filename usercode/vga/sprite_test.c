@@ -2,7 +2,14 @@
 #define SPRITE_TEST_C_
 
 #include <common.h>
-#include "vga_graphics.h"
+#include "vga/vga_graphics.h"
+
+/**
+** User function: sprite_test
+**
+** Bouncing sprite demo to show double buffering and sprite blitter.
+**
+*/
 
 // 8×8 smiley face pattern: palette index 1 (e.g. yellow) on transparent (0)
 static const uint8_t smiley8[8 * 8] = {
@@ -59,7 +66,7 @@ USERMAIN(sprite_test)
         if (y <= 0 || y + h >= VGA_HEIGHT)
             dy = -dy;
 
-        // Pause half a second
+        // Wait to set movement speed
         vga_sleep_ms(6);
     }
 

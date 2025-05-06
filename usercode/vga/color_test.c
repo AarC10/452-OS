@@ -2,25 +2,24 @@
 #define COLOR_TEST_INC_C_
 
 #include <common.h>
-#include "vga_graphics.h"
+#include "vga/vga_graphics.h"
 
 /**
 ** User function: color_test
 **
 ** Draws classic VGA vertical color stripes across the screen.
 **
-** Invoked as:  color_test
 */
 
 USERMAIN(color_test)
 {
-    char *name = argv[0] ? argv[0] : "nobody";
+    char *name = argv[0] ? argv[0] : "color_test";
     char buf[128];
 
     usprint(buf, "%s: drawing VGA color stripes\n", name);
     swrites(buf);
 
-    // This function assumes mode 13h (320x200x256) is already active.
+    // This function assumes mode 13h (320x200x256) is already active
 
     const int num_stripes = 16;
     const int stripe_width = VGA_WIDTH / num_stripes;
@@ -38,7 +37,6 @@ USERMAIN(color_test)
         }
     }
 
-    // Wait so the user can see it
     sleep(3);
 
     exit(0);

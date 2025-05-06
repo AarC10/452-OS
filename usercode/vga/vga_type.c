@@ -3,7 +3,15 @@
 
 #include <common.h>
 #include <cio.h>
-#include "vga_graphics.h"
+#include "vga/vga_graphics.h"
+
+/**
+** User function: vga_type
+**
+** Proof of concept for console interaction in graphics mode; allows user to
+** type characters to the screen and overflows to the next line.
+**
+*/
 
 USERMAIN(vga_type)
 {

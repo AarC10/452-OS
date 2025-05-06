@@ -1,7 +1,7 @@
 #include <common.h>
 #include <clock.h> // for system_time, CLOCK_FREQ
 #include <lib.h>   // for umemcpy
-#include "vga_graphics.h"
+#include "vga/vga_graphics.h"
 #include "font8x8.h"
 
 // -----------------------------------------------------------------------------
