@@ -82,6 +82,7 @@ static void (*notify)(int);
 static void setcursor( void ) {
 	unsigned addr;
 	unsigned int y = curr_y;
+	(void) addr;
 
 	if( y > scroll_max_y ) {
 		y = scroll_max_y;

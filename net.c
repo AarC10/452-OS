@@ -14,7 +14,7 @@
 #include <support.h>
 #include <x86/pci.h>
 
-static const uint8_t src_mac[ETH_ADDR_LEN] = {0};
+static uint8_t src_mac[ETH_ADDR_LEN] = {0};
 
 int net_init() {
     if (i8255x_init(src_mac)) {
@@ -25,10 +25,10 @@ int net_init() {
     cio_puts("i8255x initialized successfully\n");
     
     // Test sending a packet
-    const uint8_t *test_str = "Hello, OS!";
+    const char *test_str = "Hello, OS!";
     const uint16_t test_len = strlen(test_str);
 
-    net_transmit(test_str, test_len);
+    net_transmit((uint8_t*) test_str, test_len);
     delay(DELAY_5_SEC);
 
     return -1;
