@@ -1,0 +1,201 @@
+===============================================================================
+Module: Networking (net)
+
+File:       doc/networking.txt
+Author:     Aaron Chan <amc9897@rit.edu>
+Version:    
+Date:       5/6/25
+===============================================================================
+
+Location:   src:        ./net.c ./ethernet.c ./udp.c ./ipv4.c ./intel8255x.c ./networktests.c
+            headers:    ./include/net/*.h ./include/x86/pci.h ./include/drivers/intel8255x.h
+
+Purpose:    Provides a way to interface with the Intel 8255x Ethernet controller and
+            perform basic networking operations.
+-------------------------------------------------------------------------------
+
+
+===============================================================================
+OVERVIEW
+===============================================================================
+The networking module provides a driver for the Intel 8255x Ethernet controller,
+allowing the operating system to communicate over Ethernet networks. It includes
+functions for initializing the network interface card (NIC), sending packets,
+and receiving packets.
+
+It also provides a few basic networking protocols including Ethernet II, UDP, and IPv4.
+This is intended to serialize packets for transmission over the network and deserialize
+them upon reception. The module is designed to be modular and extensible, allowing
+for easy addition of new networking protocols in the future.
+===============================================================================
+DESIGN GOALS
+===============================================================================
+- Support the Intel 8255x Ethernet controller
+- Support basic networking protocols including Ethernet II, UDP, and IPv4
+- Provide a simple and easy-to-use API for sending and receiving packets
+- Allow for easy expansion to support additional networking protocols in the future
+- Be platform independent, allowing for easy porting to other operating systems
+- Be easy to test and debug, with tools and utilities for testing the networking stack
+- Provide a modular design that allows for easy addition of new features and protocols
+
+===============================================================================
+DEVIATIONS FROM DESIGN GOALS
+===============================================================================
+In the interest of getting things working on the actual I took out a lot of the platform 
+independent features from the driver I wrote in xv6, as I was porting things over to our 
+baseline OS. There was little benefit to having it platform independent considering that 
+you only need to just get information about the device from PCI and you just interface
+with the chip over MMIO as I learned. At the time I was changing around PCI a bit so this 
+change was worth it.
+
+===============================================================================
+MAJOR DATA STRUCTURES
+===============================================================================
+- eth_frame_t:
+    Represents an Ethernet II frame with destination/source MACs, EtherType, payload buffer, 
+    and payload length.
+
+- ipv4_packet_t:
+    Represents an IPv4 packet with full header fields, source/destination IP, and 
+    payload buffer.
+
+- udp_packet_t:
+    Represents a UDP datagram with ports, length, checksum, and payload buffer.
+
+- ipv4_pseudo_header_t:
+    Used in computing UDP checksum, holding source/destination IPs and length.
+
+- i8255x_tx_desc / i8255x_rx_desc:
+    Hardware descriptor structures for transmit and receive rings used by the
+    Intel 8255x driver.
+
+- i8255x:
+    Main device structure representing a single NIC instance. Holds MMIO base
+    address, MAC address, descriptor rings, and configuration state.
+
+- network_params_t:
+    Holds user-specified config for the network stack (MAC, IP, MTU).
+
+- network_layer_t:
+    High-level abstraction bundling together protocol layer functions,
+    statistics counters, and parameter bindings. Was more of a placeholder 
+    since this may not be very scalable if more protocols are added in the future.
+===============================================================================
+API FUNCTIONS (Declared in net.h)
+===============================================================================
+- int net_init(void);
+    Initializes the networking stack and underlying hardware for networking.
+
+- int net_transmit(const uint8_t *frame, uint16_t len);
+    Transmits a fully serialized Ethernet frame over the NIC.
+
+- int net_receive(uint8_t *buffer, uint16_t len);
+    Receives a raw Ethernet frame from the NIC into the given buffer.
+
+The below is a brief overview of the network protocol-specific APIs:
+- init()
+    Initializes a protocol-specific packet structure (e.g., Ethernet frame,
+    IPv4 packet, UDP datagram) with header data like addresses, ports,
+    EtherType, or protocol number. Sets defaults and clears payload
+    length fields.
+
+- set_payload()
+    Attaches application data to a packet or frame by copying it into the
+    payload buffer of the given protocol structure. It ensures the length
+    does not exceed maximum allowed payload size.
+
+- serialize()
+    Converts the protocol structure (including headers and payload) into a
+    contiguous byte buffer suitable for transmission. Applies padding,
+    sets checksums, and returns the total serialized size.
+
+Protocol-specific APIs in their respective headers:
+- void eth_init(), eth_set_payload(), eth_serialize()
+- void ipv4_init(), ipv4_set_payload(), ipv4_serialize()
+- void udp_init(), udp_set_payload(), udp_serialize()
+
+===============================================================================
+INTERNALS & IMPLEMENTATION DETAILS
+===============================================================================
+- All packets follow a flow: UDP <-> IPv4 <-> Ethernet II <-> NIC.
+  Each layer serializes into a buffer, then gets wrapped by the next layer.
+  This process is done manually in net_transmit() currently.
+
+- The Intel 8255x driver sets up TX and RX descriptor rings with physically
+  contiguous buffers via km_page_alloc().
+
+- MAC address retrieval supports both EEPROM-based and fallback read address register
+  approaches, with auto-fallback to a default if both fail or return invalid data.
+
+- Transmit logic waits for the descriptor status to signal done (DD bit),
+  and only then fills it in with the new buffer's address and metadata.
+
+- The receive path currently would be expected to poll using net_receive() to
+  RX descriptors that are marked free after use and the ring tail is updated.
+
+- EEPROM read uses EERD register with a spin-wait until the DONE bit is set
+  or timeout occurs. This helps extract MAC address or debug status bits.
+
+- Memory-mapped I/O access to registers is done via pointer offsets from
+  the base address reported by PCI BARs, masked using PCI_BAR_MEM_MASK.
+
+- Overall, during the kernel initialization process, net_init is called to
+  set up the NIC and prepare the networking stack for use. For testing,
+  a UDP packet is transmitted. This line is commented out in the final version
+  since it currently faults during initialization.
+
+- Userland code can use the net_transmit() and net_receive() syscalls to
+  send and receive packets, respectively.
+
+===============================================================================
+LIMITATIONS
+===============================================================================
+- I ran out of time porting over receive capabilities from xv6 to this OS, so there is no receive 
+  functionality present currently. 
+- I think I need to use the IOAPIC as well to properly handle the interrupts. 
+- Transmitting currently triggers a 0x06 fault issue. I tried allocating the buffers using km_page_alloc, 
+  but there seems to be some other issue as well which I haven't been able to debug yet. 
+- Networking stack is currently limited to just sending UDP packets. No other protocols were implemented or 
+  planned to be implemented. Adding support for new networking protocols would also require 
+  porting over linked list capabilities so that we can properly manage packet queues and buffers, 
+  as well as building a more flexible network stack to take advantage of the modularity
+
+===============================================================================
+KNOWN USES
+===============================================================================
+- main.c uses it to initialize the networking stack and setting up the NIC.
+- syscalls.c have two syscalls use it for transmitting and receiving a packet respectively.
+- Upper networking layers are used in networktests.c which is a custom executable thats 
+  linked with the standard library to test the networking stack. 
+
+===============================================================================
+TIMELINE
+===============================================================================
+March 29th - Got QEMU running with a simulated intel 8255x. Wrote a basic pci test that 
+             tries to find the 8255x. 
+             Wrote the same test into baseline and tested on physical hardware confirming 
+             the physical existence of the device
+April 05th -  Working off of xv6, tried getting the 8255x driver working, but dealt with issues 
+              dealing with MMIO and getting crashes 
+April 12th - Decided to take a break from hardware. Implemented a few networking protocols 
+             including Ethernet II, UDP and IPv4
+April 19th - Debugged issues with the above networking protocols and got the packet to 
+             properly serialize and deserialize without issues
+April 26th - Began porting the driver from xv6 to our baseline OS. Got the driver to properly 
+             read the PCI configuration space, but initializations were failing
+  May 05th - Device successfully detected after fixing a few bugs, especially with some of the PCI code. 
+             Transmit ported over next, but ran into issues with 
+
+===============================================================================
+CHALLENGES
+===============================================================================
+- Reading EEPROM from the Intel 8255x on actual hardware seemed to be an issue. Couldn't actually get a MAC address. 
+  Unknown if it was a hardware issue considering how old the devices are, since they seem to go undetected a few boots
+- Couldn't test on QEMU at some point because the QEMU version on the DSL image may not support the access methods for the 8255x 
+  Couldn't run QEMU on my own machine, since later Linux kernel versions turn off KConfig options that support compiling the baseline OS.
+  Recompiling the Linux kernel takes significantly longer than our baseline OS even on a 16-core machine 
+  (this is just me rambling about some fun facts/challenges now)
+
+
+
+
