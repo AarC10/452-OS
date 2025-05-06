@@ -1,4 +1,6 @@
-// pci.c
+// pci.c - functions for discovering and interracting with PCI devices
+// Authors: Aaron Chan, Will Bicks
+
 #include <cio.h>
 #include <x86/ops.h>
 #include <x86/pci.h>
