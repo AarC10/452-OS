@@ -30,13 +30,13 @@ static uint32_t pci_read_config(uint8_t bus, uint8_t device, uint8_t func, uint8
  * of the first found matching PCI device.
  */
 uint8_t pci_find_device(
-		uint16_t vendor_id, uint16_t device_id, 
+		uint16_t vendor_id, uint16_t device_id,
 		uint8_t* bus, uint8_t* dev, uint8_t* func,
 		void** io_base, uint8_t* irq)
 {
-	for (*bus = 0; *bus < PCI_NUM_BUSES; (*bus)++) {
-		for (*dev = 0; *dev < PCI_NUM_DEVICES; (*dev)++) {
-			for (*func = 0; *func < PCI_NUM_FUNCS; (*func)++) {
+	for (*bus = 0; *bus < PCI_NUM_BUSES - 1; (*bus)++) {
+		for (*dev = 0; *dev < PCI_NUM_DEVICES - 1; (*dev)++) {
+			for (*func = 0; *func < PCI_NUM_FUNCS - 1; (*func)++) {
 				uint32_t val = pci_read_config(*bus, *dev, *func, 0);
 				if ((val & 0xFFFF) == vendor_id) {
 					uint16_t found_device_id = (val >> 16) & 0xFFFF;
