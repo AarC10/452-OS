@@ -20,6 +20,8 @@
 #include <vm.h>
 #include <x86/pic.h>
 #include <dmx.h>
+#include <drivers/intel8255x.h>
+#include <net/ethernet.h>
 
 /*
 ** PRIVATE DEFINITIONS
@@ -844,6 +846,61 @@ SYSIMPL(dmxwrite) {
 
 
 /*
+* sys_eth_tx - transmit an Ethernet frame
+*
+* Transmits an Ethernet frame over the i8255x network interface
+* Returns 0 on success, otherwise an error code
+*/
+SYSIMPL(eth_tx) {
+	assert( pcb != NULL );
+
+	SYSCALL_ENTER( pcb->pid );
+
+	const uint8_t *frame = (const uint8_t *) ARG(pcb,1);
+	uint16_t length = (uint16_t) ARG(pcb,2);
+
+	if (length > ETH_MAX_FRAME_SIZE) {
+		RET(pcb) = E_BAD_PARAM;
+		SYSCALL_EXIT( E_BAD_PARAM );
+		return;
+	}
+
+	int result = i8255x_transmit(frame, length);
+	
+	RET(pcb) = result;
+	SYSCALL_EXIT( result );
+	return;
+}
+
+/*
+* sys_eth_rx - receive an Ethernet frame
+*
+* Receives an Ethernet frame from the i8255x network interface
+* Returns the number of bytes received, 0 if no frame is available, or an error code
+*/
+SYSIMPL(eth_rx) {
+	assert( pcb != NULL );
+
+	SYSCALL_ENTER( pcb->pid );
+
+	uint8_t *buffer = (uint8_t *) ARG(pcb,1);
+	uint16_t bufsize = (uint16_t) ARG(pcb,2);
+
+	if (bufsize < ETH_MIN_FRAME_SIZE) {
+		RET(pcb) = E_BAD_PARAM;
+		SYSCALL_EXIT( E_BAD_PARAM );
+		return;
+	}
+
+	int result = i8255x_receive(buffer, bufsize);
+	
+	RET(pcb) = result;
+	SYSCALL_EXIT( result );
+	return;
+}
+
+
+/*
 ** PRIVATE FUNCTIONS GLOBAL VARIABLES
 */
 
@@ -870,7 +927,9 @@ static void (* const syscalls[N_SYSCALLS])( pcb_t * ) = {
 	[ SYS_setprio ] = sys_setprio,
 	[ SYS_kill ]    = sys_kill,
 	[ SYS_sleep ]   = sys_sleep,
-	[ SYS_dmxwrite ] = sys_dmxwrite
+	[ SYS_dmxwrite ] = sys_dmxwrite,
+	[ SYS_eth_tx ]  = sys_eth_tx,
+	[ SYS_eth_rx ]  = sys_eth_rx
 };
 
 /**

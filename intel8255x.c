@@ -128,18 +128,6 @@ static void get_mac_addr(i8255x *dev, uint8_t mac[6]) {
     }
 }
 
-static void i8255x_init_tx(i8255x *dev) {
-    for (int i = 0; i < I8255X_TX_RING_SIZE; i++) {
-        memset(&dev->tx_ring[i], 0, sizeof(i8255x_tx_desc));
-    }
-}
-
-static void i8255x_init_rx(i8255x *dev) {
-    for (int i = 0; i < I8255X_RX_RING_SIZE; i++) {
-        memset(&dev->rx_ring[i], 0, sizeof(i8255x_rx_desc));
-    }
-}
-
 static void i8255x_setup_rings(i8255x *dev) {
     // RX ring
     for (int i = 0; i < I8255X_RX_RING_SIZE; i++) {
