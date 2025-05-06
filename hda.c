@@ -153,3 +153,15 @@ void hda_init(hda_t* hda) {
 	enumerate_codecs(hda);
 }
 
+// Set the volume of the specified codec's node.
+void hda_set_volume(hda_t* hda, uint8_t caddr, uint8_t nid, uint8_t volume,
+	bool_t input, bool_t output, bool_t mute)
+{
+	// payload: bits[13:12] - set left and right, bit7 = mute, bits[6:0] = gain
+	uint16_t payload = ((output ? 1 : 0) << 15) | ((input ? 1 : 0) << 14) | (0x3 << 12)
+		| ((mute ? 1 : 0) << 7) | (volume & 0x7F);
+
+	send_verb_imm(hda, caddr, nid, HDA_VERB_AMP_SET,
+			payload, false);
+}
+

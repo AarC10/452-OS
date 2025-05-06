@@ -89,3 +89,8 @@ extern hda_t default_hda;
 
 // Discover and initialize a new HDA controller
 void hda_init(hda_t* hda);
+
+// Set the volume of a specified codec's node along with it's mute status
+void hda_set_volume(hda_t* hda,	uint8_t caddr, uint8_t nid, uint8_t volume,
+	bool_t input, bool_t output, bool_t  mute);
+
