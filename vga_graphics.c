@@ -17,7 +17,7 @@
 #include <clock.h> // for system_time, CLOCK_FREQ
 #include <lib.h>   // for umemcpy
 #include "vga/vga_graphics.h"
-#include "font8x8.h"
+#include "vga/font8x8.h"
 
 // -----------------------------------------------------------------------------
 // Port I/O helpers
