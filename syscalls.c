@@ -20,8 +20,7 @@
 #include <vm.h>
 #include <x86/pic.h>
 #include <dmx.h>
-#include <drivers/intel8255x.h>
-#include <net/ethernet.h>
+#include <net/net.h>
 
 /*
 ** PRIVATE DEFINITIONS
@@ -848,7 +847,7 @@ SYSIMPL(dmxwrite) {
 /*
 * sys_eth_tx - transmit an Ethernet frame
 *
-* Transmits an Ethernet frame over the i8255x network interface
+* Transmits an Ethernet frame
 * Returns 0 on success, otherwise an error code
 */
 SYSIMPL(eth_tx) {
@@ -865,7 +864,7 @@ SYSIMPL(eth_tx) {
 		return;
 	}
 
-	int result = i8255x_transmit(frame, length);
+	int result = net_transmit(frame, length);
 	
 	RET(pcb) = result;
 	SYSCALL_EXIT( result );
@@ -875,7 +874,7 @@ SYSIMPL(eth_tx) {
 /*
 * sys_eth_rx - receive an Ethernet frame
 *
-* Receives an Ethernet frame from the i8255x network interface
+* Receives an Ethernet frame from the network interface
 * Returns the number of bytes received, 0 if no frame is available, or an error code
 */
 SYSIMPL(eth_rx) {
@@ -892,7 +891,7 @@ SYSIMPL(eth_rx) {
 		return;
 	}
 
-	int result = i8255x_receive(buffer, bufsize);
+	int result = net_receive(buffer, bufsize);
 	
 	RET(pcb) = result;
 	SYSCALL_EXIT( result );

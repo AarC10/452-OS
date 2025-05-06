@@ -1,5 +1,8 @@
 {
     "files.associations": {
+        "\"*html\"": "\"html\"",
+        "\"**/templates/**/*.html\"": "\"django-html\"",
+        "*.html": "html",
         "common.h": "c",
         "lib.h": "c",
         "ulib.h": "c",
@@ -7,6 +10,7 @@
         "support.h": "c",
         "klib.h": "c",
         "functional": "c",
-        "random": "c"
+        "random": "c",
+        "net.h": "c"
     }
 }
