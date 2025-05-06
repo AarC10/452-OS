@@ -421,7 +421,7 @@ int main( void ) {
 	sio_flush( SIO_RX | SIO_TX );
 	sio_enable( SIO_RX );
 
-	hda_init();
+	hda_init(&default_hda);
 
 	cio_puts( "System initialization complete.\n" );
 	cio_puts( "-------------------------------\n" );
