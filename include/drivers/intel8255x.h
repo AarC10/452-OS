@@ -1,3 +1,10 @@
+/**
+ * @file intel8255x.h
+ * @author Aaron Chan
+ * @brief Intel 8255x driver header file
+ */
+
+
 #ifndef _INTEL8255X_DRIVER_
 #define _INTEL8255X_DRIVER_
 
@@ -13,30 +20,30 @@
 
 // Registers
 // Registers 
-#define I8255X_CTL (0x0000)   // Device Control Register - RW
+#define I8255X_CTL 0x0000   // Device Control Register - RW
 #define I8255X_STATUS 0x0008  // Device Status Register - RO
-#define I8255X_EERD (0x0014)  // EEPROM Read - RW 
-#define I8255X_ICR (0x00C0)   // Interrupt Cause Read - R 
-#define I8255X_IMS (0x00D0)   // Interrupt Mask Set - RW 
-#define I8255X_IMC (0x00D8)   // Interrupt Mask Clear - RW 
-#define I8255X_RCTL (0x0100)  // RX Control - RW 
-#define I8255X_TCTL (0x0400)  // TX Control - RW 
-#define I8255X_TIPG (0x0410)  // TX Inter-packet gap -RW 
-#define I8255X_RDBAL (0x2800) // RX Descriptor Base Address Low - RW 
-#define I8255X_RDBAH (0x2804) // RX Descriptor Base Address High - RW 
-#define I8255X_RDTR (0x2820)  // RX Delay Timer 
-#define I8255X_RADV (0x282C)  // RX Interrupt Absolute Delay Timer 
-#define I8255X_RDH (0x2810)   // RX Descriptor Head - RW 
-#define I8255X_RDT (0x2818)   // RX Descriptor Tail - RW 
-#define I8255X_RDLEN (0x2808) // RX Descriptor Length - RW 
-#define I8255X_RSRPD (0x2C00) // RX Small Packet Detect Interrupt 
-#define I8255X_TDBAL (0x3800) // TX Descriptor Base Address Low - RW 
-#define I8255X_TDBAH (0x3804) // TX Descriptor Base Address Hi - RW 
-#define I8255X_TDLEN (0x3808) // TX Descriptor Length - RW 
-#define I8255X_TDH (0x3810)   // TX Descriptor Head - RW 
-#define I8255X_TDT (0x3818)   // TX Descripotr Tail - RW 
-#define I8255X_MTA (0x5200)   // Multicast Table Array - RW Array 
-#define I8255X_RA (0x5400)    // Receive Address - RW Array 
+#define I8255X_EERD 0x0014  // EEPROM Read - RW 
+#define I8255X_ICR 0x00C0   // Interrupt Cause Read - R 
+#define I8255X_IMS 0x00D0   // Interrupt Mask Set - RW 
+#define I8255X_IMC 0x00D8   // Interrupt Mask Clear - RW 
+#define I8255X_RCTL 0x0100  // RX Control - RW 
+#define I8255X_TCTL 0x0400  // TX Control - RW 
+#define I8255X_TIPG 0x0410  // TX Inter-packet gap -RW 
+#define I8255X_RDBAL 0x2800 // RX Descriptor Base Address Low - RW 
+#define I8255X_RDBAH 0x2804 // RX Descriptor Base Address High - RW 
+#define I8255X_RDTR 0x2820  // RX Delay Timer 
+#define I8255X_RADV 0x282C  // RX Interrupt Absolute Delay Timer 
+#define I8255X_RDH 0x2810   // RX Descriptor Head - RW 
+#define I8255X_RDT 0x2818   // RX Descriptor Tail - RW 
+#define I8255X_RDLEN 0x2808 // RX Descriptor Length - RW 
+#define I8255X_RSRPD 0x2C00 // RX Small Packet Detect Interrupt 
+#define I8255X_TDBAL 0x3800 // TX Descriptor Base Address Low - RW 
+#define I8255X_TDBAH 0x3804 // TX Descriptor Base Address Hi - RW 
+#define I8255X_TDLEN 0x3808 // TX Descriptor Length - RW 
+#define I8255X_TDH 0x3810   // TX Descriptor Head - RW 
+#define I8255X_TDT 0x3818   // TX Descripotr Tail - RW 
+#define I8255X_MTA 0x5200   // Multicast Table Array - RW Array 
+#define I8255X_RA 0x5400    // Receive Address - RW Array 
 
 // Dev Ctrl
 #define I8255X_CTL_SLU 0x00000040     // Link speed
@@ -103,10 +110,28 @@ typedef struct {
     struct i8255x *next;
 } i8255x;
 
-int i8255x_init(void);
+/**
+ * @brief Initialize the Intel 8255x network driver
+ * @param src_mac Pointer to the source MAC address to be set by the driver
+ * @return 0 on success, -1 on failure
+ */
+int i8255x_init(uint8_t *src_mac);
 
+/**
+ * Transmit a frame over the network
+ * @param frame Pointer to the frame data to be transmitted
+ * @param len Length of the frame data
+ * @return 0 on success, -1 on failure
+ */
 int i8255x_transmit(const uint8_t *frame, uint16_t len);
 
-int i8255x_receive(uint8_t *buf, uint16_t bufsize);
+
+/**
+ * Receive a frame from the network
+ * @param buffer Pointer to the buffer where the received frame will be stored
+ * @param len Length of the buffer
+ * @return Number of bytes received, or 0 if no frame is available
+ */
+int i8255x_receive(uint8_t *buffer, uint16_t len);
 
 #endif // _INTEL8255X_DRIVER_

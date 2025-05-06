@@ -1,7 +1,12 @@
-// intel8255x.c
+/**
+ * @file intel8255x.c
+ * @author Aaron Chan
+ * @brief Intel 8255x driver implementation supporting initialization
+ *        EEPROM reading, MAC address retrieval, and tx/rx functionality  
+ */
+
 #include <common.h>
 #include <drivers/intel8255x.h>
-#include <drivers/intel8255x_ops.h>
 #include <kmem.h>
 #include <types.h>
 #include <x86/pci.h>
@@ -32,7 +37,7 @@ static uint32_t get_mmio_addr(struct pci_func *pcif) {
 }
 
 static uint16_t i8255x_read_eeprom(i8255x *dev, uint8_t addr) {
-    // First read the status register to check the EEPROM status
+    // read the status register to check the EEPROM status
     uint32_t status = read_reg(dev, I8255X_STATUS);
     cio_printf("EEPROM read - status register: 0x%08x\n", status);
     
@@ -41,9 +46,11 @@ static uint16_t i8255x_read_eeprom(i8255x *dev, uint8_t addr) {
         return 0xFFFF;
     }
     
+    // read the EEPROM data
     uint32_t before = read_reg(dev, I8255X_EERD);
     cio_printf("EERD register before: 0x%08x\n", before);
     
+    // set up the command to read from the EEPROM
     uint32_t cmd = ((uint32_t)addr << I8255X_EERD_ADDR) | I8255X_EERD_READ;
     cio_printf("EERD command: 0x%08x\n", cmd);
     
@@ -52,6 +59,7 @@ static uint16_t i8255x_read_eeprom(i8255x *dev, uint8_t addr) {
     uint32_t data;
     int timeout = 1000000;
     
+    // Spinloop until the read is done or timeout
     do {
         data = read_reg(dev, I8255X_EERD);
         
@@ -67,7 +75,6 @@ static uint16_t i8255x_read_eeprom(i8255x *dev, uint8_t addr) {
     }
     
     uint16_t result = (uint16_t)(data >> I8255X_EERD_DATA);
-    
     cio_printf("EEPROM read complete: addr %d, data 0x%04x, raw 0x%08x\n", 
               addr, result, data);
     
@@ -82,7 +89,7 @@ static void get_mac_addr(i8255x *dev, uint8_t mac[6]) {
     if (status & (1 << 8)) {
         cio_puts("EEPROM detected, reading MAC...\n");
         
-        // EEPROM present: read words 0..2
+        // EEPROM present so read words 0..2
         for (int i = 0; i < 3; i++) {
             uint16_t w = i8255x_read_eeprom(dev, i);
             cio_printf("EEPROM word %d: 0x%04x\n", i, w);
@@ -93,7 +100,7 @@ static void get_mac_addr(i8255x *dev, uint8_t mac[6]) {
     } else {
         cio_puts("No EEPROM, reading from RAR...\n");
         
-        // Fallback: read Receive Address registers
+        // Fallback where we read Receive Address registers
         uint32_t lo = read_reg(dev, I8255X_RA);
         uint32_t hi = read_reg(dev, I8255X_RA + 4);
         
@@ -170,7 +177,7 @@ static void i8255x_setup_rings(i8255x *dev) {
     write_reg(dev, I8255X_TIPG, I8255X_TIPG_DEFAULT);
 }
 
-int i8255x_init(void) {
+int i8255x_init(uint8_t *src_mac) {
     struct pci_func *pcif = km_slice_alloc();
     if (!pcif) {
         cio_puts("PCI alloc failed\n");
@@ -221,6 +228,9 @@ int i8255x_init(void) {
     
     cio_printf("Verify RAR[0]=0x%08x, RAR[1]=0x%08x\n", verify_low, verify_high);
 
+    // Copy the MAC address to the global variable for the rest of the net stack to use
+    memcpy(src_mac, dev->addr, 6);
+
 
     // clear multicast table
     for (int i = 0; i < 128; i++) {
@@ -266,19 +276,27 @@ int i8255x_transmit(const uint8_t *frame, uint16_t len) {
 }
 
 // Receive one packet: returns byte-count, or 0 if none available.
-int i8255x_receive(uint8_t *buf, uint16_t bufsize) {
+int i8255x_receive(uint8_t *buffer, uint16_t bufferLen) {
     i8255x *dev = global_dev;
     i8255x_rx_desc *d = &dev->rx_ring[rx_next];
     // Check if descriptor has been filled
-    if (!(d->status & I8255X_RXD_STAT_DD)) return 0;
+    if (!(d->status & I8255X_RXD_STAT_DD)) {
+        return 0;
+    }
+
     // Copy up to bufsize
     uint16_t len = d->length;
-    if (len > bufsize) len = bufsize;
-    memcpy(buf, (void *)(uintptr_t)d->addr, len);
+    if (len > bufferLen) {
+        len = bufferLen;
+    }
+    memcpy(buffer, (void *)(uintptr_t)d->addr, len);
+    
     // Mark descriptor free
     d->status = 0;
+    
     // Advance the hardware tail
     write_reg(dev, I8255X_RDT, rx_next);
     rx_next = (rx_next + 1) % I8255X_RX_RING_SIZE;
+    
     return len;
 }

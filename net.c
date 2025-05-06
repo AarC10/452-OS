@@ -1,16 +1,47 @@
+/**
+ * @file net.h
+ * @author Aaron Chan
+ * @brief Abstracts away interfacing with hardware devices for networking
+ *        and sending and receiving packets over UDP.  
+ */
+
 #include <drivers/intel8255x.h>
 #include <net/net.h>
 
-#include "cio.h"
-#include "klib.h"
-#include "net/ethernet.h"
-#include "net/ipv4.h"
-#include "net/udp.h"
-#include "support.h"
-#include "x86/pci.h"
+#include <cio.h>
+#include <klib.h>
+#include <kmem.h>
+#include <support.h>
+#include <x86/pci.h>
 
-void test_udp_over_ip_over_ethernet() {
-    uint8_t buffer[ETH_MAX_FRAME_SIZE] = {0};
+static uint8_t src_mac[ETH_ADDR_LEN] = {0};
+
+int net_init() {
+    if (i8255x_init(src_mac)) {
+        cio_puts("Failed to initialize i8255x\n");
+        return -1;
+    }
+
+    cio_puts("i8255x initialized successfully\n");
+    
+    // Test sending a packet
+    const char *test_str = "Hello, OS!";
+    const uint16_t test_len = strlen(test_str);
+
+    net_transmit((uint8_t*) test_str, test_len);
+    delay(DELAY_5_SEC);
+
+    return -1;
+}
+
+int net_transmit(const uint8_t *frame, uint16_t len) {
+    uint8_t *buffer = km_page_alloc(1);
+    if (!buffer) {
+        cio_puts("TX buffer alloc failed\n");
+        return -1;
+    }
+    memcpy(buffer, frame, len);
+
 
     // UDP
     udp_packet_t udp;
@@ -39,7 +70,6 @@ void test_udp_over_ip_over_ethernet() {
 
     // Ethernet II
     eth_frame_t eth;
-    uint8_t src_mac[ETH_ADDR_LEN] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
     uint8_t dest_mac[ETH_ADDR_LEN] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
 
     eth_init(&eth, dest_mac, src_mac, ETH_TYPE_IPV4);
@@ -47,27 +77,9 @@ void test_udp_over_ip_over_ethernet() {
 
     uint32_t eth_size = eth_serialize(&eth, buffer, sizeof(buffer));
 
-    i8255x_transmit(buffer, eth_size);
+    return i8255x_transmit(buffer, eth_size);
 }
 
-int net_init() {
-    if (i8255x_init()) {
-        cio_puts("Failed to initialize i8255x\n");
-        return -1;
-    }
-
-    cio_puts("i8255x initialized successfully\n");
-    
-
-    // for (int i = 0; i < 100; i++) {
-        // test_udp_over_ip_over_ethernet();
-        // cio_printf("Sent packet %d\n", i);
-        // delay(DELAY_1_SEC);
-    // }
-
-
-
-    delay(DELAY_5_SEC);
-
-    return -1;
+int net_receive(uint8_t *buffer, uint16_t len) {
+    return i8255x_receive(buffer, len);
 }

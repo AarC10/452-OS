@@ -46,7 +46,7 @@ USERMAIN(sprite_test)
     int dx = 2;
     int dy = 1;
     const int w = 8, h = 8;
-    int toggle = 0;
+    // int toggle = 0;
     vga_set_palette_color(1, 0xFF, 0xFF, 0x00); // Yellow (RGB: 255, 255, 0)
 
     while (1)

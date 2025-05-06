@@ -1,3 +1,8 @@
+/**
+ * @file udp.h
+ * @author Aaron Chan
+ * @brief UDP header file with definitions and function prototypes
+ */
 #ifndef UDP_H
 #define UDP_H
 
