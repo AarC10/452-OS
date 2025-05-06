@@ -495,6 +495,26 @@ void bogus( void );
 */
 int dmxwrite( uint_t port, uint8_t data[DMX_SLOTS] );
 
+/**
+* eth_tx - transmit an Ethernet frame
+*
+* @param frame     Pointer to the frame data to transmit
+* @param length    Length of the frame in bytes
+*
+* @return  0 on success, else an error code
+*/
+int eth_tx( const void *frame, uint16_t length );
+
+/**
+* eth_rx - receive an Ethernet frame
+*
+* @param buffer    Buffer to store the received frame
+* @param bufsize   Size of the buffer in bytes
+*
+* @return  Number of bytes received, 0 if no frame is available, or an error code
+*/
+int eth_rx( void *buffer, uint16_t bufsize );
+
 /*
 *************************************************
 ** CONVENIENT "SHORTHAND" VERSIONS OF SYSCALLS **

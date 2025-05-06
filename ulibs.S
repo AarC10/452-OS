@@ -69,6 +69,8 @@ SYSCALL(setprio)
 SYSCALL(kill)
 SYSCALL(sleep)
 SYSCALL(dmxwrite)
+SYSCALL(eth_tx)
+SYSCALL(eth_rx)
 
 /*
 ** This is a bogus system call; it's here so that we can test
