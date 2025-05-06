@@ -59,11 +59,11 @@ int net_init() {
     cio_puts("i8255x initialized successfully\n");
     
 
-    for (int i = 0; i < 100; i++) {
-        test_udp_over_ip_over_ethernet();
-        cio_printf("Sent packet %d\n", i);
-        delay(DELAY_1_SEC);
-    }
+    // for (int i = 0; i < 100; i++) {
+        // test_udp_over_ip_over_ethernet();
+        // cio_printf("Sent packet %d\n", i);
+        // delay(DELAY_1_SEC);
+    // }
 
 
 

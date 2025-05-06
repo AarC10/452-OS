@@ -32,42 +32,99 @@ static uint32_t get_mmio_addr(struct pci_func *pcif) {
 }
 
 static uint16_t i8255x_read_eeprom(i8255x *dev, uint8_t addr) {
+    // First read the status register to check the EEPROM status
+    uint32_t status = read_reg(dev, I8255X_STATUS);
+    cio_printf("EEPROM read - status register: 0x%08x\n", status);
+    
+    if (!(status & (1 << 8))) {
+        cio_puts("EEPROM not present according to status register\n");
+        return 0xFFFF;
+    }
+    
+    uint32_t before = read_reg(dev, I8255X_EERD);
+    cio_printf("EERD register before: 0x%08x\n", before);
+    
     uint32_t cmd = ((uint32_t)addr << I8255X_EERD_ADDR) | I8255X_EERD_READ;
+    cio_printf("EERD command: 0x%08x\n", cmd);
+    
     write_reg(dev, I8255X_EERD, cmd);
-
+    
     uint32_t data;
-    int timeout = 100000;
+    int timeout = 1000000;
+    
     do {
         data = read_reg(dev, I8255X_EERD);
-        __asm__ __volatile__("pause");
+        
+        // Add a small delay between reads
+        for (int i = 0; i < 100; i++) {
+            __asm__ __volatile__("pause");
+        }
     } while (!(data & I8255X_EERD_DONE) && --timeout);
 
     if (!timeout) {
-        cio_puts("EEPROM read timeout\n");
+        cio_puts("EEPROM read timed out\n");
         return 0xFFFF;
     }
-    return (uint16_t)(data >> I8255X_EERD_DATA);
+    
+    uint16_t result = (uint16_t)(data >> I8255X_EERD_DATA);
+    
+    cio_printf("EEPROM read complete: addr %d, data 0x%04x, raw 0x%08x\n", 
+              addr, result, data);
+    
+    return result;
 }
 
 static void get_mac_addr(i8255x *dev, uint8_t mac[6]) {
     uint32_t status = read_reg(dev, I8255X_STATUS);
+    cio_printf("Device status: 0x%08x\n", status);
+    
+    // First try the EEPROM
     if (status & (1 << 8)) {
+        cio_puts("EEPROM detected, reading MAC...\n");
+        
         // EEPROM present: read words 0..2
         for (int i = 0; i < 3; i++) {
             uint16_t w = i8255x_read_eeprom(dev, i);
+            cio_printf("EEPROM word %d: 0x%04x\n", i, w);
+            
             mac[i * 2] = w & 0xFF;
             mac[i * 2 + 1] = (w >> 8) & 0xFF;
         }
     } else {
+        cio_puts("No EEPROM, reading from RAR...\n");
+        
         // Fallback: read Receive Address registers
         uint32_t lo = read_reg(dev, I8255X_RA);
         uint32_t hi = read_reg(dev, I8255X_RA + 4);
+        
+        cio_printf("RAR[0]: 0x%08x, RAR[1]: 0x%08x\n", lo, hi);
+        
         mac[0] = lo & 0xFF;
         mac[1] = (lo >> 8) & 0xFF;
         mac[2] = (lo >> 16) & 0xFF;
         mac[3] = (lo >> 24) & 0xFF;
         mac[4] = hi & 0xFF;
         mac[5] = (hi >> 8) & 0xFF;
+    }
+    
+    // Check if MAC is all zeros or all FFs
+    bool_t all_zero = true;
+    bool_t all_ff = true;
+    
+    for (int i = 0; i < 6; i++) {
+        if (mac[i] != 0x00) all_zero = false;
+        if (mac[i] != 0xFF) all_ff = false;
+    }
+    
+    if (all_zero || all_ff) {
+        // Problem with MAC reading, use a valid default instead
+        cio_puts("Invalid MAC detected, setting default\n");
+        mac[0] = 0x00;
+        mac[1] = 0x11;
+        mac[2] = 0x22;
+        mac[3] = 0x33;
+        mac[4] = 0x44;
+        mac[5] = 0x55;
     }
 }
 
@@ -158,7 +215,23 @@ int i8255x_init(void) {
     cio_printf("MAC %02x:%02x:%02x:%02x:%02x:%02x\n", dev->addr[0],
                dev->addr[1], dev->addr[2], dev->addr[3], dev->addr[4],
                dev->addr[5]);
-
+               
+    // Program the MAC address into the hardware's RAR register
+    uint32_t rar_low = dev->addr[0] | (dev->addr[1] << 8) | 
+                       (dev->addr[2] << 16) | (dev->addr[3] << 24);
+    uint32_t rar_high = dev->addr[4] | (dev->addr[5] << 8) | (1 << 31); // Set Address Valid bit
+    
+    cio_printf("Setting RAR[0]=0x%08x, RAR[1]=0x%08x\n", rar_low, rar_high);
+    
+    // Write to the receive address registers
+    write_reg(dev, I8255X_RA, rar_low);
+    write_reg(dev, I8255X_RA + 4, rar_high);
+    
+    // Verify what was written
+    uint32_t verify_low = read_reg(dev, I8255X_RA);
+    uint32_t verify_high = read_reg(dev, I8255X_RA + 4);
+    
+    cio_printf("Verify RAR[0]=0x%08x, RAR[1]=0x%08x\n", verify_low, verify_high);
 
 
     // clear multicast table
@@ -182,7 +255,16 @@ int i8255x_transmit(const uint8_t *frame, uint16_t len) {
     // hardware must have finished with this descriptor
     if (!(d->status & I8255X_TXD_STAT_DD)) return -1;
 
-    d->addr = (uint64_t)(uintptr_t)frame;
+    uint8_t *buf = km_page_alloc(1);
+    if (!buf) {
+        cio_puts("TX buffer alloc failed\n");
+        return -1;
+    }
+
+    // Copy the frame to the buffer
+    memcpy(buf, frame, len);
+
+    d->addr = (uint64_t)(uintptr_t)buf;
     d->length = len;
     d->cso = 0;
     d->cmd = I8255X_TXD_CMD_EOP | I8255X_TXD_CMD_IFCS | I8255X_TXD_CMD_RS;
