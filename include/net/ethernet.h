@@ -1,3 +1,9 @@
+/**
+ * @file ethernet.h
+ * @author Aaron Chan
+ * @brief Ethernet II header file with definitions and function prototypes
+ */
+
 #ifndef ETHERNET_H
 #define ETHERNET_H
 

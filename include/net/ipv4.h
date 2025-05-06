@@ -1,3 +1,9 @@
+/**
+ * @file ipv4.h
+ * @author Aaron Chan
+ * @brief IPv4 header file with definitions and function prototypes
+ */
+
 #ifndef IPV4_H
 #define IPV4_H
 

@@ -1,3 +1,8 @@
+/**
+ * @file networklayer.c
+ * @author Aaron Chan
+ * @brief Definitions for a network protocol implementation
+ */
 #ifndef NETWORK_LAYER_H
 #define NETWORK_LAYER_H
 
