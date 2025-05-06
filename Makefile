@@ -12,9 +12,9 @@
 # OS files
 #
 
-OS_C_SRC = cio.c clock.c klibc.c kmem.c list.c main.c procs.c \
+OS_C_SRC = cio.c clock.c kernel.c klibc.c kmem.c list.c procs.c \
 	   sio.c support.c syscalls.c user.c
-OS_C_OBJ = cio.o clock.o klibc.o kmem.o list.o main.o procs.o \
+OS_C_OBJ = cio.o clock.o kernel.o klibc.o kmem.o list.o procs.o \
 	   sio.o support.o syscalls.o user.o
 
 OS_S_SRC = startup.o isrs.o
@@ -78,11 +78,15 @@ SOURCES = $(BOOT_SRC) $(OS_SRCS) $(USR_SRCS)
 #                       every 'n' seconds
 #   VIDEO_BW            select black characters on white background for VGA
 #   VERBOSE_IDLE        idle process periodically prints '.' characters 
+#   BTR_LIMIT=n         limit kernel backtraces to 'n' entries
+#   SIO_HALF_DUPLEX     have the SIO module echo input characters
+#   SYSCALL_DOTS        five-character '*' progression marking syscalls
+#   CIO_DUP2_SIO        copy all console output to SIO as well
 #
 
-GEN_OPTIONS = -DOS_CONFIG -DSYSTEM_STATUS=10 -DFORCE_INLINING \
-	      -DCONSOLE_STATS
-#		-DVIDEO_BW
+GEN_OPTIONS = -DOS_CONFIG -DSYSTEM_STATUS=5 -DFORCE_INLINING \
+	      -DCONSOLE_STATS -DBTR_LIMIT=10 \
+	      -DCIO_DUP2_SIO -DSIO_HALF_DUPLEX
 
 #
 # Debugging options:
@@ -91,7 +95,7 @@ GEN_OPTIONS = -DOS_CONFIG -DSYSTEM_STATUS=10 -DFORCE_INLINING \
 #   RPT_INT_MYSTERY     report interrupt 0x27 specifically
 #   TRACE_CX            context restore tracing
 #   SANITY=n            enable "sanity check" level 'n' (0/1/2/3/4)
-#   CIO_DUP2_SIO        copy all console output to SIO as well
+#   CHECK_ALL_QUEUES	enable calls to pcb_queue_check() in various places
 #
 # Some modules have their own internal debugging options, described
 # in their introductory comments.
@@ -100,7 +104,7 @@ GEN_OPTIONS = -DOS_CONFIG -DSYSTEM_STATUS=10 -DFORCE_INLINING \
 # If not defined, SANITY defaults to 9999.
 #
 
-DBG_OPTIONS = -DRPT_INT_UNEXP -DTRACE_CX -DCIO_DUP2_SIO
+DBG_OPTIONS = -DRPT_INT_UNEXP -DTRACE_CX -DCHECK_ALL_QUEUES
 
 #
 # T_ options are used to define bits in a "tracing" bitmask, to allow
@@ -287,18 +291,13 @@ vars.%: FORCE
 disk.img: include/offsets.h boot.b kernel.b BuildImage
 	./BuildImage -d usb -o disk.img -b boot.b kernel.b $(KLDPT)
 
-#kernel:	$(OBJECTS) vars.CFLAGS vars.LDFLAGS vars.KLDFLAGS
-#	$(LD) $(LDFLAGS) $(KLDFLAGS) -o kernel $(OBJECTS)
-#	$(OBJDUMP) -S kernel > kernel.asm
-#	$(NM) -n kernel > kernel.sym
+kernel:	$(OBJECTS) vars.CFLAGS vars.LDFLAGS vars.KLDFLAGS
+	$(LD) $(LDFLAGS) $(KLDFLAGS) -o kernel $(OBJECTS)
+	$(OBJDUMP) -S kernel > kernel.asm
+	$(NM) -n kernel > kernel.sym
 
-kernel.o:	$(OBJECTS) vars.CFLAGS vars.LDFLAGS vars.KLDFLAGS
-	$(LD) $(LDFLAGS) $(KLDFLAGS) -o kernel.o $(OBJECTS)
-	$(OBJDUMP) -S kernel.o > kernel.asm
-	$(NM) -n kernel.o > kernel.sym
-
-kernel.b:	kernel.o vars.BLDFLAGS
-	$(LD) $(LDFLAGS) -o kernel.b -s --oformat binary -Ttext $(KLDPT) kernel.o
+kernel.b:	kernel vars.BLDFLAGS
+	$(LD) $(LDFLAGS) -o kernel.b -s --oformat binary -Ttext $(KLDPT) kernel
 
 #boot.o:	boot.S vars.CFLAGS
 #	$(CC) $(CFLAGS) -c -o $*.o $*.S
@@ -315,7 +314,7 @@ $(OBJECTS):	vars.CFLAGS
 #
 
 kernel.hex:	kernel
-	$(HEXDUMP) -C kernel > kernel.hex
+	$(HEXDUMP) -C kernel.b > kernel.hex
 	$(OBJCOPY) -S -O binary -j .data kernel kernel.data
 	$(HEXDUMP) -C kernel.data > kernel.data.hex
 	$(OBJCOPY) -S -O binary -j .rodata kernel kernel.rodata

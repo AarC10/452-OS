@@ -4,6 +4,10 @@
 ** @author	CSCI-452 class of 20245
 **
 ** @brief	Process-related implementations
+**
+** Compile-time options:
+**
+**  CHECK_ALL_QUEUES  - Check queue consistencies at various points
 */
 
 #define	KERNEL_SRC
@@ -77,23 +81,23 @@ pcb_t *init_pcb;
 
 // table of state name strings
 const char state_str[N_STATES][4] = {
-	[ STATE_UNUSED   ] = "Unu",       // "Unused"
-	[ STATE_NEW      ] = "New",
-	[ STATE_READY    ] = "Rdy",       // "Ready"
-	[ STATE_RUNNING  ] = "Run",       // "Running"
-	[ STATE_SLEEPING ] = "Slp",       // "Sleeping"
-	[ STATE_BLOCKED  ] = "Blk",       // "Blocked"
-	[ STATE_WAITING  ] = "Wat",       // "Waiting"
-	[ STATE_KILLED   ] = "Kil",       // "Killed"
-	[ STATE_ZOMBIE   ] = "Zom"        // "Zombie"
+	[ STATE_UNUSED   ] = "UNU",       // "Unused"
+	[ STATE_NEW      ] = "NEW",
+	[ STATE_READY    ] = "RDY",       // "Ready"
+	[ STATE_RUNNING  ] = "RUN",       // "Running"
+	[ STATE_SLEEPING ] = "SLP",       // "Sleeping"
+	[ STATE_BLOCKED  ] = "BLK",       // "Blocked"
+	[ STATE_WAITING  ] = "WAT",       // "Waiting"
+	[ STATE_KILLED   ] = "KIL",       // "Killed"
+	[ STATE_ZOMBIE   ] = "ZOM"        // "Zombie"
 };
 
 // table of priority name strings
 const char prio_str[N_PRIOS][5] = {
-	[ PRIO_HIGH     ] = "High",
-	[ PRIO_STD      ] = "User",
-	[ PRIO_LOW      ] = "Low ",
-	[ PRIO_DEFERRED ] = "Def "
+	[ PRIO_HIGH     ] = "HIGH",
+	[ PRIO_STD      ] = "USER",
+	[ PRIO_LOW      ] = "LOW ",
+	[ PRIO_DEFERRED ] = "DEF "
 };
 
 // table of queue ordering name strings
@@ -248,6 +252,10 @@ int pcb_alloc( pcb_t **pcb ) {
 	if( pcb_queue_remove(pcb_freelist,&tmp) != SUCCESS ) {
 		return E_NO_PCBS;
 	}
+#ifdef CHECK_ALL_QUEUES
+	(void) QCHECK( "after", pcb_freelist, true );
+#endif
+	tmp->next = NULL;
 
 	*pcb = tmp;
 	return SUCCESS;
@@ -264,10 +272,10 @@ void pcb_free( pcb_t *pcb ) {
 
 	if( pcb != NULL ) {
 		// mark the PCB as available
-		pcb->state = STATE_UNUSED;
+		memclr( pcb, sizeof(pcb_t) );
+		pcb->state = STATE_UNUSED;  // in case 0 is something else....
 
 		// add it to the free list
-		pcb->next = NULL;
 		int status = pcb_queue_insert( pcb_freelist, pcb );
 
 		// if that failed, we're in trouble
@@ -338,13 +346,122 @@ void pcb_stack_free( uint32_t *stk, uint32_t size ) {
 }
 
 /**
+** Name:    pcb_queue_check
+**
+** Verify that a queue is internally consistent
+**
+** @param fcn    Name of the calling function
+** @param msg    Message to be printed if an error is found
+** @param queue  The queue to be checked
+** @param die    Should we panic on error?
+**
+** @return true if no errors are detected, else false (and die == false)
+*/
+bool_t pcb_queue_check( const char *fcn, const char *msg,
+		pcb_queue_t queue, bool_t die ) {
+
+	// basic checks
+	if( queue == NULL ) {
+
+		// NULL queue means we were given a bad parameter
+		cio_printf( "QCHK: %s%s: NULL parameter\n", fcn, msg );
+		if( die ) {
+			kpanic( "QCHK NULL param" );
+		}
+		return false;
+
+	} else if( queue->head == NULL ) {
+
+		// head is NULL, so there shouldn't be anything in the queue
+		if( queue->tail == NULL && queue->length == 0 ) {
+			// consistent!
+			return true;
+		}
+
+		// something's wrong - either tail is non-NULL, or
+		// length is not zero
+		cio_printf( "QCHK: %s%s: q %08x head %08x tail %08x len %u\n",
+				fcn, msg, (uint32_t) queue, (uint32_t) (queue->head),
+				(uint32_t) (queue->tail), queue->length );
+		if( die ) {
+			kpanic( "QCHK head/tail/len mismatch" );
+		}
+		return false;
+
+	} else if( queue->tail == NULL ) {
+
+		// error - head is non-NULL, but tail is NULL
+		cio_printf( "QCHK: %s%s: q %08x head %08x tail %08x len %u\n",
+				fcn, msg, (uint32_t) queue, (uint32_t) (queue->head),
+				(uint32_t) (queue->tail), queue->length );
+		if( die ) {
+			kpanic( "QCHK head/tail mismatch" );
+		}
+		return false;
+
+	}
+
+	// head and tail are both non-NULL, so we now need to 
+	// verify that the length is correct and there are no
+	// loops in the queue
+
+	// track the PCBs we seen in the queue
+	pcb_t *addrs[N_PROCS + 2] = { 0 };  // where to keep their addresses
+	int num = 0;                        // how many we've seen
+
+	register pcb_t *pcb = queue->head;
+	int where = 0;
+	while( pcb != NULL ) {
+
+		// check the list of PCBs we've already seen
+		for( int i = 0; i < num; ++i ) {
+			if( pcb == addrs[i] ) {
+				// found one we've already seen!
+				cio_printf( "QCHK: %s%s: q %08x pcb %08x dup %d and %d\n",
+						fcn, msg, (uint32_t) queue, (uint32_t) pcb, i, where );
+				cio_printf( "Entry #%d", i );
+				pcb_dump( NULL, addrs[i], DMODE_ACTIVE_PCB );
+				cio_printf( "Entry #%d", where );
+				pcb_dump( NULL, pcb, DMODE_ACTIVE_PCB );
+				if( die ) {
+					kpanic( "queue dup entry" );
+				}
+				return false;
+			}
+		}
+
+		// we've seen a new one
+		addrs[num++] = pcb;
+
+		// move on, and remember how many we have seen
+		pcb = pcb->next;
+		++where;
+
+	}
+
+	// check the count of "seen" PCBs against the stated queue length
+	if( where != queue->length ) {
+		// uh-oh....
+		cio_printf( "QCHK: %s%s q %08x length is %d, count was %d\n",
+				fcn, msg, (uint32_t) queue, queue->length, where );
+		if( die ) {
+			kpanic( "QCHK length error" );
+		}
+		return false;
+	}
+
+	// all done!
+	return true;
+}
+
+/**
 ** Name:	pcb_zombify
 **
 ** Turn the indicated process into a Zombie. This function
 ** does most of the real work for exit() and kill() calls.
 ** Is also called from the scheduler and dispatcher.
 **
-** @param pcb   Pointer to the newly-undead PCB
+** @param victim   Pointer to the newly-undead PCB
 */
 void pcb_zombify( register pcb_t *victim ) {
 
@@ -356,15 +473,18 @@ void pcb_zombify( register pcb_t *victim ) {
 	// every process must have a parent, even if it's 'init'
 	assert( victim->parent != NULL );
 
+#ifdef CHECK_ALL_QUEUES
+	// verify the state of the zombie queue
+	(void) QCHECK( "enter", zombie, true );
+#endif
+
 	/*
-	** We need to locate the parent of this process.  We also need
-	** to reparent any children of this process.  We do these in
-	** a single loop.
+	** We need to reparent any children of this process.
 	*/
 	pcb_t *parent = victim->parent;
 	pcb_t *zchild = NULL;
 
-	// two PIDs we will look for
+	// the PID we will look for
 	uint_t vicpid = victim->pid;
 
 	// speed up access to the process table entries
@@ -410,7 +530,7 @@ void pcb_zombify( register pcb_t *victim ) {
 	** this one.
 	**
 	** Also note: it's possible that the exiting process' parent is
-	** also init, which means we're letting one of zombie children
+	** also init, which means we're letting one of the zombie children
 	** of the exiting process be cleaned up by init before the 
 	** existing process itself is cleaned up by init. This will work,
 	** because after init cleans up the zombie, it will loop and
@@ -421,8 +541,18 @@ void pcb_zombify( register pcb_t *victim ) {
 
 		// dequeue the zombie
 		assert( pcb_queue_remove_this(zombie,zchild) == SUCCESS );
+#ifdef CHECK_ALL_QUEUES
+		(void) QCHECK( "rem zombie", zombie, true );
+#endif
 
+		// dequeue init
 		assert( pcb_queue_remove_this(waiting,init_pcb) == SUCCESS );
+#ifdef CHECK_ALL_QUEUES
+		(void) QCHECK( "rem init_pcb", waiting, true );
+#endif
+
+		zchild->next = NULL;
+		init_pcb->next = NULL;
 
 		// intrinsic return value is the PID
 		RET(init_pcb) = zchild->pid;
@@ -469,6 +599,12 @@ void pcb_zombify( register pcb_t *victim ) {
 			// the parent is waiting for this child or is waiting
 			// for any of its children, so we can wake it up.
 
+			assert( pcb_queue_remove_this(waiting,parent) == SUCCESS );
+#ifdef CHECK_ALL_QUEUES
+			(void) QCHECK( "rem parent", waiting, true );
+#endif
+			parent->next = NULL;
+
 			// intrinsic return value is the PID
 			RET(parent) = vicpid;
 
@@ -498,17 +634,20 @@ void pcb_zombify( register pcb_t *victim ) {
 	/*
 	** The parent isn't waiting OR is waiting for a specific child
 	** that isn't this exiting process, so we become a Zombie.
-	**
-	** This code assumes that Zombie processes are *not* in
-	** a queue, but instead are just in the process table with
-	** a state of 'Zombie'.  This simplifies life immensely,
-	** because we won't need to dequeue it when it is collected
-	** by its parent.
 	*/
 
 	victim->state = STATE_ZOMBIE;
 	victim->next = NULL;
+
+#ifdef CHECK_ALL_QUEUES
+	(void) QCHECK( "pre insert", zombie, true );
+#endif
+
 	assert( pcb_queue_insert(zombie,victim) == SUCCESS );
+
+#ifdef CHECK_ALL_QUEUES
+	(void) QCHECK( "post insert", zombie, true );
+#endif
 
 	/*
 	** Note: we don't call _dispatch() here - we leave that for
@@ -767,6 +906,10 @@ int pcb_queue_remove( pcb_queue_t queue, pcb_t **pcb ) {
 	assert1( queue != NULL );
 	assert1( pcb != NULL );
 
+#ifdef CHECK_ALL_QUEUES
+	(void) QCHECK( "entry", queue, true );
+#endif
+
 	// can't get anything if there's nothing to get!
 	if( PCB_QUEUE_EMPTY(queue) ) {
 		return E_EMPTY_QUEUE;
@@ -791,6 +934,10 @@ int pcb_queue_remove( pcb_queue_t queue, pcb_t **pcb ) {
 	// save the pointer
 	*pcb = tmp;
 
+#ifdef CHECK_ALL_QUEUES
+	(void) QCHECK( "exit", queue, true );
+#endif
+
 	return SUCCESS;
 }
 
@@ -813,6 +960,10 @@ int pcb_queue_remove_this( pcb_queue_t queue, pcb_t *pcb ) {
 	//sanity checks
 	assert1( queue != NULL );
 	assert1( pcb != NULL );
+
+#ifdef CHECK_ALL_QUEUES
+	(void) QCHECK( "entry", queue, true );
+#endif
 
 	// can't get anything if there's nothing to get!
 	if( PCB_QUEUE_EMPTY(queue) ) {
@@ -871,10 +1022,14 @@ int pcb_queue_remove_this( pcb_queue_t queue, pcb_t *pcb ) {
 	// one of the queue pointers is NULL and the other one
 	// is not NULL
 
+#ifdef CHECK_ALL_QUEUES
+	(void) QCHECK( "exit", queue, true );
+#else
 	assert1(
 		(queue->head == NULL && queue->tail == NULL) ||
 		(queue->head != NULL && queue->tail != NULL)
 	);
+#endif
 
 	return SUCCESS;
 }
@@ -936,6 +1091,9 @@ void schedule( pcb_t *pcb ) {
 				(uint32_t) pcb, status );
 		kpanic( b256 );
 	}
+#ifdef CHECK_ALL_QUEUES
+	(void) QCHECK( "after", ready, true );
+#endif
 }
 
 /**
@@ -954,6 +1112,11 @@ void dispatch( void ) {
 		sprint( b256, "dispatch() queue remove status %d", status );
 		kpanic( b256 );
 	}
+#ifdef CHECK_ALL_QUEUES
+	(void) QCHECK( "after", ready, true );
+#endif
+	// seems to not be happening sometimes?
+	current->next = NULL;
 
 	// set the process up for success
 	current->state = STATE_RUNNING;
@@ -1050,7 +1213,7 @@ void pcb_dump( const char *msg, register pcb_t *pcb, uint32_t mode ) {
 		return;
 	}
 
-	cio_printf( " %d %s", pcb->pid,
+	cio_printf( " pid %d st %s", pcb->pid,
 			pcb->state >= N_STATES ? "???" : state_str[pcb->state] );
 
 	bool_t do_simple = (mode & DMODE_DEPTH_BITS) == DMODE_SIMPLE;
@@ -1062,7 +1225,7 @@ void pcb_dump( const char *msg, register pcb_t *pcb, uint32_t mode ) {
 	}
 
 	// now, the rest of the contents
-	cio_printf( " %s",
+	cio_printf( " pri %s",
 			pcb->priority >= N_PRIOS ? "???" : prio_str[pcb->priority] );
 
 	cio_printf( " ticks %u xit %d wake %08x\n",

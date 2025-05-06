@@ -4,6 +4,12 @@
 ** @author	CSCI-452 class of 20245
 **
 ** @brief	Clock module implementation
+**
+** Compile-time options:
+**
+**  SYSTEM_STATUS=n    - every 'n' seconds, dump queue lengths and SIO
+**  SYSCALL_DOTS       - display a moving '*' to indicate syscall behavior
+**  CHECK_ALL_QUEUES   - perform consistency checks on queue contents
 */
 
 #define KERNEL_SRC
@@ -63,6 +69,22 @@ static void clk_isr( int vector, int code ) {
 		cio_putchar_at( 0, 0, "|/-\\"[ pindex & 3 ] );
 	}
 
+#ifdef CHECK_ALL_QUEUES
+	// every 4096 ticks, perform queue consistency checks
+	if( (system_time & 0xfff) == 0 ) {
+		int errors = 0;
+		if( !QCHECK( "ready", ready, false ) ) ++errors;
+		if( !QCHECK( "waiting", waiting, false ) ) ++errors;
+		if( !QCHECK( "sleeping", sleeping, false ) ) ++errors;
+		if( !QCHECK( "zombie", zombie, false ) ) ++errors;
+		if( !QCHECK( "sioread", sioread, false ) ) ++errors;
+		if( errors > 0 ) {
+			cio_printf( "clk_isr: %d QCHK errors\n", errors );
+			kpanic( "QCHK error(s)" );
+		}
+	}
+#endif
+
 #if defined(SYSTEM_STATUS)
 	// Periodically, dump the queue lengths and the SIO status (along
 	// with the SIO buffers, if non-empty).
@@ -71,13 +93,19 @@ static void clk_isr( int vector, int code ) {
 	// reporting frequency, in seconds.
 
 	if( (system_time % SEC_TO_TICKS(SYSTEM_STATUS)) == 0 ) {
-		cio_printf_at( 1, 0, " queues: R[%u] W[%u] Sl[%u] Z[%u] Si[%u]   ",
+#ifdef SYSCALL_DOTS
+		unsigned int xy = cio_where();
+#endif
+		cio_printf_at( 7, 0, " queues: R[%u] W[%u] Sl[%u] Z[%u] Si[%u]   ",
 			pcb_queue_length(ready),
 			pcb_queue_length(waiting),
 			pcb_queue_length(sleeping),
 			pcb_queue_length(zombie),
 			pcb_queue_length(sioread)
 		);
+#ifdef SYSCALL_DOTS
+		cio_moveto( (xy >> 16) & 0xffff, xy & 0xffff );
+#endif
 	}
 #endif
 
@@ -110,6 +138,10 @@ static void clk_isr( int vector, int code ) {
 
 		// OK, we need to wake this process up
 		assert( pcb_queue_remove(sleeping,&tmp) == SUCCESS );
+#ifdef CHECK_ALL_QUEUES
+		(void) QCHECK( "clk wake up sleeper", sleeping, true );
+#endif
+		tmp->next = NULL;
 		schedule( tmp );
 	} while( 1 );
 

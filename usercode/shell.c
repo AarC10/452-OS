@@ -5,8 +5,10 @@
 // should we keep going?
 static bool_t time_to_stop = false;
 
+#if 0
 // number of spawned but uncollected children
 static int children = 0;
+#endif
 
 /*
 ** For the test programs in the baseline system, command-line arguments
@@ -142,14 +144,15 @@ static proc_t sh_spawn_table[] = {
 ** usage function
 */
 static void usage( void ) {
-	swrites( "\nTests - run with '@x', where 'x' is one or more of:\n " );
+	swrites( "\nTests - run with '@x':\n" );
 	proc_t *p = sh_spawn_table;
 	while( p->valid ) {
 		swritech( ' ' );
 		swritech( p->select[0] );
 		++p;
 	}
-	swrites( "\nOther commands: @* (all), @h (help), @x (exit), @@ (dump)\n" );
+	swritech( '\n' );
+	swrites( "Other commands: @* (all), @? (help), @x (exit), @@ (dump)\n" );
 }
 
 /*
@@ -160,7 +163,7 @@ static int run( char which ) {
 	register proc_t *p;
 	char lwhich = LCASE(which);
 
-	if( lwhich == 'h' ) {
+	if( lwhich == '?' ) {
 
 		// builtin "help" command
 		usage();
@@ -197,9 +200,11 @@ static int run( char which ) {
 		p = sh_spawn_table;
 		while( p->valid ) {
 			int status = spawn( p->entry, p->args );
+#if 0
 			if( status > 0 ) {
 				++children;
 			}
+#endif
 			++p;
 		}
 
@@ -211,9 +216,11 @@ static int run( char which ) {
 			if( LCASE(p->select[0]) == lwhich ) {
 				// found it!
 				int status = spawn( p->entry, p->args );
+#if 0
 				if( status > 0 ) {
 					++children;
 				}
+#endif
 				return status;
 			}
 			++p;
@@ -396,7 +403,12 @@ USERMAIN( shell ) {
 			} // for
 
 			// now, wait for all the spawned children
-			while( children > 0 ) {
+#if 0
+			while( children > 0 )
+#else
+			for(;;)
+#endif
+			{
 				// wait for the child
 				int32_t status;
 				char buf[128];
@@ -409,7 +421,9 @@ USERMAIN( shell ) {
 					usprint( buf, "%s: waitpid() returned %d\n", name, whom );
 					swrites( buf );
 				} else {
+#if 0
 					--children;
+#endif
 					if( status != 0 ) {
 						usprint( buf, "%s: PID %d exit status %d\n",
 								name, whom, status );

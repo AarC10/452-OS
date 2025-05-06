@@ -1,6 +1,4 @@
 /**
-** SCCS ID:	@(#)cio.h	2.7	1/22/25
-**
 ** @file	cio.h
 **
 ** @author	Warren R. Carithers
@@ -113,6 +111,14 @@ void cio_setscroll( unsigned int min_x, unsigned int min_y,
 		unsigned int max_x, unsigned int max_y );
 
 /**
+** cio_scrollreset
+**
+** Resets the scrolling region to the entire screen. Leaves the cursor
+** in its current position.
+*/
+void cio_scrollreset( void );
+
+/**
 ** cio_moveto
 **
 ** Moves the cursor to the specified position. (0,0) indicates
@@ -122,6 +128,17 @@ void cio_setscroll( unsigned int min_x, unsigned int min_y,
 ** @param x,y   desired coordinate position
 */
 void cio_moveto( unsigned int x, unsigned int y );
+
+/**
+** cio_where
+**
+** Returns the current cursor position as a 32-bit unsigned
+** integer. The upper 16 bits are the 'x' position, and the
+** lower 16 bits are the 'y' position.
+**
+** @return the current cursor position
+*/
+unsigned int cio_where( void );
 
 /**
 ** cio_putchar

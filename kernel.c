@@ -3,7 +3,13 @@
 **
 ** @author	CSCI-452 class of 20245
 **
-** @brief	Kernel support routines
+** @brief	Kernel main function
+**
+** Compile-time options:
+**
+**  DUMP_IDT      main() dumps some IDT data before returning
+**  DUMP_GDT      main() dumps the GDT before returning
+**  DUMP_QUEUES   main() dumps the queues before returning
 */
 
 #define	KERNEL_SRC
@@ -193,16 +199,28 @@ static void stats( int code ) {
 
 	switch( code ) {
 
-	case 'a':  // dump the active table
-		ptable_dump( "\nActive processes", false );
+	case 'a':  // dump basic info on active processes
+		ptable_dump( "\nActive processes\n", DMODE_ACTIVE_SIMPLE );
 		break;
 
-	case 'c':  // dump context info for all active PCBs
-		ctx_dump_all( "\nContext dump" );
+	case 'A':  // dump basic info on all processes
+		ptable_dump( "\nAll processes\n", DMODE_ACTIVE_SIMPLE );
 		break;
 
-	case 'p':  // dump the active table and all PCBs
-		ptable_dump( "\nActive processes", true );
+	case 'c':  // dump PCB and context for active PCBs
+		ptable_dump( "\nActive PCB/Context dump", DMODE_ACTIVE_FULL );
+		break;
+
+	case 'C':  // dump PCB and context for all PCBs
+		ptable_dump( "\nAll PCB/Context dump", DMODE_ALL_FULL );
+		break;
+
+	case 'p':  // dump all active PCBs
+		ptable_dump( "\nActive PCBs\n", DMODE_ACTIVE_PCB );
+		break;
+
+	case 'P':  // dump all PCBs
+		ptable_dump( "\nAll PCBs processes\n", DMODE_ALL_PCB );
 		break;
 
 	case 'q':  // dump the queues
@@ -218,6 +236,10 @@ static void stats( int code ) {
 		kreport( true );
 		break;
 
+	case 's':  // SIO stats
+		sio_dump( true );
+		break;
+
 		// ignore CR and LF
 	case '\r': // FALL THROUGH
 	case '\n':
@@ -229,12 +251,16 @@ static void stats( int code ) {
 
 	case 'h':  // help message
 		cio_puts( "\nCommands:\n"
-			"  a -- dump the active table\n"
-			"  c -- dump contexts for active processes\n"
+			"  a -- dump active process info\n"
+			"  A -- dump all process info\n"
+			"  c -- dump pcb and context for active processes\n"
+			"  C -- dump pcb and context for all processes\n"
 			"  h -- this message\n"
-			"  p -- dump the active table and all PCBs\n"
+			"  p -- dump all active PCBs\n"
+			"  P -- dump all PCBs\n"
 			"  q -- dump the queues\n"
 			"  r -- print system configuration\n"
+			"  s -- print SIO stats\n"
 		);
 		break;
 	}
@@ -392,17 +418,13 @@ int main( void ) {
 	cio_puts_at( 0, 6, "================================================================================" );
 #endif
 
-	/*
-	** END OF TERM-SPECIFIC CODE
-	*/
-
 	sio_flush( SIO_RX | SIO_TX );
 	sio_enable( SIO_RX );
 
 	cio_puts( "System initialization complete.\n" );
 	cio_puts( "-------------------------------\n" );
 
-#if 0
+#ifdef DUMP_IDT
 	// report on the setup of specific interrupt vector entries
 	extern uint32_t isr_stub_table[];
 
@@ -416,6 +438,18 @@ int main( void ) {
 	IDT_PRINT( VEC_TIMER );
 	IDT_PRINT( VEC_SYSCALL );
 	IDT_PRINT( VEC_PAGE_FAULT );
+#endif
+
+#ifdef DUMP_GDT
+	cio_printf( "GDT entries (@ %08x):\n", GDT_ADDR );
+	GDT_PRINT( (GDT_LINEAR >> 3) );
+	GDT_PRINT( (GDT_CODE >> 3) );
+	GDT_PRINT( (GDT_DATA >> 3) );
+	GDT_PRINT( (GDT_STACK >> 3) );
+#endif
+
+#ifdef DUMP_QUEUES
+	sio_dump( true );
 
 	// produce a "system state" report
 	cio_puts( "System status: Queues " );
@@ -425,10 +459,10 @@ int main( void ) {
 	pcb_queue_dump( "Z", zombie, true );
 	pcb_queue_dump( "I", sioread, true );
 	ptable_dump_counts();
-	pcb_dump( "Current: ", current, true );
+	pcb_dump( "Current: ", current, DMODE_PCB_FULL );
 
-	delay( DELAY_2_SEC );
 #endif
+	delay( DELAY_1_SEC );
 
 	return 0;
 }

@@ -154,9 +154,11 @@ USERMAIN( init ) {
 
 		} else {
 
-			// got one; report it
-			usprint( buf, "%s: pid %d exit(%d)\n", name, whom, status );
-			cwrites( buf );
+			// got one; report it if it was a non-zero status
+			if( status != 0 ) {
+				usprint( buf, "%s: pid %d exit(%d)\n", name, whom, status );
+				cwrites( buf );
+			}
 
 			// figure out if this is one of ours
 			next = in_spawn_table;

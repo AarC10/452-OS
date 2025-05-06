@@ -4,6 +4,11 @@
 ** @author	CSCI-452 class of 20245
 **
 ** @brief	System call implementations
+**
+** Compile-time options:
+**
+**  CHECK_ALL_QUEUES  - Perform queue consistency checks
+**  SYSCALL_DOTS      - animate a dot when syscalls occur
 */
 
 #define	KERNEL_SRC
@@ -55,10 +60,6 @@ int mbz;
 
 #define SYSCALL_EXIT(x) if( TRACING_SYSRETS || mbz ) { \
 	cio_printf( "<-- %s %08x\n", __func__, (uint32_t) (x) ); }
-
-/*
-** PRIVATE DATA TYPES
-*/
 
 /*
 ** PUBLIC GLOBAL VARIABLES
@@ -211,6 +212,12 @@ SYSIMPL(waitpid) {
 
 		for( int i = 0; i < N_PROCS; ++i, ++curr ) {
 
+			// is this an active process?
+			if( curr->state == STATE_UNUSED ) {
+				continue;
+			}
+
+			// yes - is it a child of our caller?
 			if( curr->parent == pcb ) {
 
 				// found one!
@@ -252,6 +259,9 @@ SYSIMPL(waitpid) {
 		// no - mark the parent as "Waiting"
 		pcb->state = STATE_WAITING;
 		assert( pcb_queue_insert(waiting,pcb) == SUCCESS );
+#ifdef CHECK_ALL_QUEUES
+		(void) QCHECK( "insert", waiting, true );
+#endif
 
 		// select a new current process
 		current = NULL;
@@ -260,7 +270,13 @@ SYSIMPL(waitpid) {
 		return;
 	}
 
-	// found a Zombie; collect its information and clean it up
+	// found a Zombie; remove it from the queue
+	assert( pcb_queue_remove_this(zombie,child) == SUCCESS );
+#ifdef CHECK_ALL_QUEUES
+	(void) QCHECK( "remove", zombie, true );
+#endif
+
+	// send its information back to the parent
 	RET(pcb) = child->pid;
 
 	// get "status" pointer from parent
@@ -326,37 +342,37 @@ SYSIMPL(fork) {
 	memcpy( (void *)new->stack, (void *)pcb->stack, N_USTKPAGES * SZ_PAGE );
 
 	/*
-    ** Next, we need to update the ESP and EBP values in the child's
-    ** stack.  The problem is that because we duplicated the parent's
-    ** stack, these pointers are still pointing back into that stack,
-    ** which will cause problems as the two processes continue to execute.
-    **
-    ** Note: if there are other pointers to things in the parent's stack
-    ** (e.g., pointers to local variables), we do NOT locate and update
-    ** them, as that's impractical. As a result, user code that relies on
-    ** such pointers may behave strangely after a fork().
-    */
+	** Next, we need to update the ESP and EBP values in the child's
+	** stack.  The problem is that because we duplicated the parent's
+	** stack, these pointers are still pointing back into that stack,
+	** which will cause problems as the two processes continue to execute.
+	**
+	** Note: if there are other pointers to things in the parent's stack
+	** (e.g., pointers to local variables), we do NOT locate and update
+	** them, as that's impractical. As a result, user code that relies on
+	** such pointers may behave strangely after a fork().
+	*/
 
-    // Figure out the byte offset from one stack to the other.
-    int32_t offset = (void *) new->stack - (void *) pcb->stack;
+	// Figure out the byte offset from one stack to the other.
+	int32_t offset = (void *) new->stack - (void *) pcb->stack;
 
-    // Add this to the child's context pointer.
-    new->context = (context_t *) (((void *)pcb->context) + offset);
+	// Add this to the child's context pointer.
+	new->context = (context_t *) (((void *)pcb->context) + offset);
 
-    // Fix the child's ESP and EBP values IFF they're non-zero.
-    if( REG(new,ebp) != 0 ) {
-        REG(new,ebp) += offset;
-    }
-    if( REG(new,esp) != 0 ) {
-        REG(new,esp) += offset;
-    }
+	// Fix the child's ESP and EBP values IFF they're non-zero.
+	if( REG(new,ebp) != 0 ) {
+		REG(new,ebp) += offset;
+	}
+	if( REG(new,esp) != 0 ) {
+		REG(new,esp) += offset;
+	}
 
-    // Follow the EBP chain through the child's stack.
-    uint32_t *bp = (uint32_t *) REG(new,ebp);
-    while( bp ) {
-        *bp += offset;
-        bp = (uint32_t *) *bp;
-    }
+	// Follow the EBP chain through the child's stack.
+	uint32_t *bp = (uint32_t *) REG(new,ebp);
+	while( bp ) {
+		*bp += offset;
+		bp = (uint32_t *) *bp;
+	}
 
 	// Set the child's identity.
 	new->pid = next_pid++;
@@ -497,6 +513,9 @@ SYSIMPL(read) {
 		// no characters, so block this process
 		pcb->state = STATE_BLOCKED;
 		assert1( pcb_queue_insert(sioread,pcb) == SUCCESS );
+#ifdef CHECK_ALL_QUEUES
+		(void) QCHECK( "blocking", sioread, true );
+#endif
 
 		// select the next process to run
 		current = NULL;
@@ -744,6 +763,10 @@ SYSIMPL(kill) {
 		// to dispatch a new process
 		victim->exit_status = EXIT_KILLED;
 		status = pcb_queue_remove_this( waiting, victim );
+#ifdef CHECK_ALL_QUEUES
+		(void) QCHECK( "remove", waiting, true );
+#endif
+		victim->next = NULL;
 		pcb_zombify( victim );
 		RET(pcb) = status;
 		break;
@@ -805,6 +828,9 @@ SYSIMPL(sleep) {
 			// return without dispatching a new process
 			return;
 		}
+#ifdef CHECK_ALL_QUEUES
+		(void) QCHECK( "after", sleeping, true );
+#endif
 	}
 
 	// only dispatch if the current process called us
@@ -852,6 +878,10 @@ static void (* const syscalls[N_SYSCALLS])( pcb_t * ) = {
 ** @param code     Error code (0 for this interrupt)
 */
 static void sys_isr( int vector, int code ) {
+#ifdef SYSCALL_DOTS
+	// position cycles 6, 2, 3, 4, 5, 6, 2, ...
+	static int pos = 6;
+#endif
 
 	// keep the compiler happy
 	(void) vector;
@@ -860,6 +890,20 @@ static void sys_isr( int vector, int code ) {
 	// sanity check!
 	assert( current != NULL );
 	assert( current->context != NULL );
+
+#ifdef SYSCALL_DOTS
+	// "wrapping" dot progression from positions 2-6 on line 0
+	// remember where the cursor was
+	unsigned int xy = cio_where();
+	// erase the current dot
+	cio_putchar_at( pos, 0, ' ' );
+	++pos;
+	if( pos > 6 ) {
+		pos = 2;
+	}
+	cio_putchar_at( pos, 0, '*' );
+	cio_moveto( (xy >> 16) & 0xffff, xy & 0xffff );
+#endif
 
 	// retrieve the syscall code
 	int num = REG( current, eax );

@@ -18,8 +18,9 @@
 **
 ** Compile-time options:
 **
-**	VIDEO_BW                Select black-on-white video
-**	CIO_DUP2_SIO            Copy all non-scrolling-region CIO output to SIO
+**  SA_DEBUG            For testing - uses stdio
+**  VIDEO_BW            Select black-on-white video
+**  CIO_DUP2_SIO        Copy all scrolling-region CIO output to SIO
 **
 */
 
@@ -152,12 +153,30 @@ void cio_setscroll( unsigned int s_min_x, unsigned int s_min_y,
 }
 
 /*
+** Reset the scrolling region to the entire display
+*/
+void cio_scrollreset( void ) {
+	scroll_min_x = min_x;
+	scroll_max_x = max_x;
+	scroll_min_y = min_y;
+	scroll_max_y = max_y;
+	// leave the cursor where it is
+}
+
+/*
 ** Cursor movement in the scroll region
 */
 void cio_moveto( unsigned int x, unsigned int y ) {
 	curr_x = bound( scroll_min_x, x + scroll_min_x, scroll_max_x );
 	curr_y = bound( scroll_min_y, y + scroll_min_y, scroll_max_y );
 	setcursor();
+}
+
+/*
+** Retrieve the current cursor position
+*/
+unsigned int cio_where( void ) {
+	return ((curr_x & 0xffff) << 16) | (curr_y & 0xffff);
 }
 
 /*

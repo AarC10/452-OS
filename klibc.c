@@ -4,6 +4,10 @@
 ** @author	Numerous CSCI-452 classes
 **
 ** @brief	Kernel library functions
+**
+** Compile-time options:
+**
+**  BTR_LIMIT=n       Limit backtrace to 'n' levels
 */
 
 #define KERNEL_SRC
@@ -269,7 +273,7 @@ void put_char_or_code( int ch ) {
 ** Perform a stack backtrace
 **
 ** @param ebp   Initial EBP to use
-** @param args  Number of function argument values to print
+** @param args  Number of argument values to print from each frame
 */
 void backtrace( uint32_t *ebp, uint_t args ) {
 
@@ -281,7 +285,12 @@ void backtrace( uint32_t *ebp, uint_t args ) {
 		cio_putchar( '\n' );
 	}
 
-	while( ebp != NULL ){
+#ifdef BTR_LIMIT
+	for( int j = 0; ebp != NULL && j < BTR_LIMIT; ++j )
+#else
+	while( ebp != NULL )
+#endif
+	{
 
 		// get return address and report it and EBP
 		uint32_t ret = ebp[1];
@@ -317,27 +326,32 @@ void kpanic( const char *msg ) {
 		cio_printf( "%s\n", msg );
 	}
 
-	delay( DELAY_5_SEC );   // approximately
+	delay( DELAY_2_SEC );   // approximately
 
 	// dump a bunch of potentially useful information
 
 	// dump the contents of the current PCB
 	pcb_dump( "Current", current, true );
+	cio_putchar( '\n' );
 
 	// dump the basic info about what's in the process table
 	ptable_dump_counts();
 
+	delay( DELAY_2_SEC );   // approximately
+
 	// dump information about the queues
-	pcb_queue_dump( "R", ready, true );
-	pcb_queue_dump( "W", waiting, true );
-	pcb_queue_dump( "S", sleeping, true );
-	pcb_queue_dump( "Z", zombie, true );
-	pcb_queue_dump( "I", sioread, true );
+	pcb_queue_dump( "Ready ", ready, true );
+	pcb_queue_dump( "Wait  ", waiting, true );
+	pcb_queue_dump( "Sleep ", sleeping, true );
+	pcb_queue_dump( "Zombie", zombie, true );
+	pcb_queue_dump( "SIO   ", sioread, true );
 
 	// perform a stack backtrace
 	backtrace( (uint32_t *) r_ebp(), 3 );
 
 	// could dump other stuff here, too
+
+	delay( DELAY_5_SEC );   // approximately
 
 	panic( "KERNEL PANIC" );
 }

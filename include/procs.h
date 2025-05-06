@@ -182,6 +182,12 @@ enum pcb_queue_order_e {
 #define	O_FIRST_STYLE	O_FIFO
 #define	O_LAST_STYLE	O_WAKEUP
 
+// queue checking macro - calls pcb_queue_check() with message
+// "fcn(), qname, msg"
+//
+#define QCHECK(msg,qname,d) \
+	pcb_queue_check( __func__, "(), " # qname ", " msg , qname, d )
+
 /*
 ** Globals
 */
@@ -266,6 +272,21 @@ uint32_t *pcb_stack_alloc( uint32_t size );
 ** @param size   Allocation size (in pages, or 0 for the default size
 */
 void pcb_stack_free( uint32_t *stk, uint32_t size );
+
+/**
+** Name:    pcb_queue_check
+**
+** Verify that a queue is internally consistent
+**
+** @param fcn    Name of the calling function
+** @param msg    Message to be printed if an error is found
+** @param queue  The queue to be checked
+** @param die    Should we panic on error?
+**
+** @return true if no errors are detected, else false (and die == false)
+*/
+bool_t pcb_queue_check( const char *fcn, const char *msg,
+		pcb_queue_t queue, bool_t die );
 
 /**
 ** Name:    pcb_zombify

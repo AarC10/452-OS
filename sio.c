@@ -57,6 +57,10 @@
 **      directly, add the rest of the characters (if there are
 **      any) to the output buffer, and set the "sending" flag
 **      to indicate that we're expecting a transmitter interrupt.
+**
+** Compile-time options:
+**
+**  SIO_HALF_DUPLEX   - Echo incoming characters back to the TX side
 */
 
 #define KERNEL_SRC
@@ -170,6 +174,10 @@ cio_printf( " ch %02x", ch );
 					*inlast++ = ch;
 					++incount;
 				}
+#ifdef SIO_HALF_DUPLEX
+				// echo the character back
+				sio_writec( ch );
+#endif
 			}
 
 #ifdef QNAME
@@ -743,7 +751,8 @@ void sio_dump( bool_t full ) {
 		cio_puts( "SIO output queue: \"" );
 		cio_puts( " ot: \"" );
 		ptr = outnext; 
-		for( n = 0; n < outcount; ++n )  {
+		int count = outcount;
+		for( n = 0; n < count; ++n )  {
 			put_char_or_code( *ptr++ );
 		}
 		cio_puts( "\"\n" );
