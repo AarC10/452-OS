@@ -1,0 +1,276 @@
+Team Reflections
+==================================================================================
+
+This document serves to summaries the team's reflections on the various projects
+carried out during the semester.
+
+------------------------------------------
+VGA Graphics Mode Development Experiences
+Nicholas Merante
+------------------------------------------
+
+The development of the VGA graphics subsystem began with a straightforward but
+essential milestone: switching the display to VGA Mode 13h and successfully
+rendering a solid red screen. This initial step confirmed proper access to the
+VGA framebuffer located at physical memory address 0xA0000 and established the
+foundation for all work to follow. With the video mode and memory mapping
+verified, I proceeded to build out a basic 2D graphics API from the ground up.
+The first set of features focused on core drawing primitives. I implemented
+functions for setting individual pixels and expanded this to include algorithms
+for rendering lines, rectangles, circles, and eventually triangles. Each shape
+was tested visually through small user-space demo programs, which allowed me
+to verify the correctness of rendering routines. These tests laid the
+groundwork for dynamic and interactive graphics, paving the way for
+animation support.
+
+However, once animations were introduced such as moving shapes or refreshing the
+screen in quick succession, heavy flickering of the screen became apparent. This
+issue stemmed from the fact that drawing was being done directly to video
+memory, where writes could occur mid-refresh, leading to partial frames being
+displayed. To address this, I implemented a software-based double-buffering
+mechanism. All rendering operations were redirected to a backbuffer in RAM,
+which could be flushed to the screen only during the vertical retrace interval
+using hardware polling. This effectively eliminated flickering and resulted in
+smooth, stable animation output.
+
+Another major design consideration during this process was compatibility with
+the existing console I/O system, implemented in cio.c, which relied on text
+mode. Initially, I tried to make both systems coexist so that the console could
+remain functional even when graphics mode was active. However, due to the
+fundamentally different memory layouts of text and graphics modes, and the
+limited time constraints of the project, this approach ended up being too
+complex to implement cleanly. As a result, I opted to separate the two modes
+entirely at the build level, at least for this first iteration of the project to
+ensure that all submodules would continue to work for the final demo. The
+Makefile was modified so that building with make qemu would launch the system in
+standard text mode, while make qemu-vga would build and run the system in
+graphics mode. This decision provided a clean boundary between the two
+subsystems and allowed both to be developed and maintained independently without
+interfering with one another, assuming that in future development the
+functionality from cio.c would be brought over to graphics mode.
+
+Looking back, the VGA graphics project was a clear success. It provided a
+working and flexible low-level graphics API that enabled a variety of user
+programs, including a functional Snake game, primitive shape tests, and
+sprite-based animations. The use of double buffering was very important in
+achieving the quality of animation desired, and integrating vsync-based timing
+further polished the results. The project also provided valuable experience in
+systems-level programming, including hardware interfacing, low-level memory
+management, and real-time rendering challenges.
+
+In hindsight, one improvement I would make would be to more clearly separate
+concerns earlier in the process. Attempting to integrate text mode and graphics
+mode consumed time and energy that would have been better spent refining and
+optimizing the graphics subsystem itself. On the other hand, building
+lightweight test routines to verify each graphics primitive in isolation allowed
+for faster debugging and more confidence in each component as I made progress,
+which was infinitely helpful. Overall, the project met its goals, and the
+resulting subsystem performed reliably under various test scenarios and was
+able to produce a working game for the presentation and demo using the
+primitives designed.
+
+-----------------------------------
+DMX Driver Development Experiences
+John Arrandale
+-----------------------------------
+
+Development of the DMX512 driver first began with research into the DMX512
+standard (ANSI E1.11/USITT DMX512-A) along with a deep dive into serial and
+UART. From there, the first milestone of the project was to establish a basic
+form of one-way communication over serial. While the baseline OS already had the
+necessary systems in place for this, it only handled console data over COM1. So,
+this led to an implementation which initializes a second port, COM2, which is
+used exclusively for DMX traffic. This process involved researching the
+PC16450D/PC16550D UART receiver/transmitter and going through the datasheet to
+figure out how to appropriately configure the device with the necessary
+settings. Throughout this process I also built up my testing environment so that
+I could see the raw serial output from QEMU to be used for debugging later on.
+
+After basic serial communication was set up, the next milestone was to develop a
+simple driver and test program that implemented the basics of the DMX512
+standard. For simplicity at the start, both of these interacted directly with
+one another. Initially, completing this milestone was fairly straightforward as
+the data protocol defined under DMX512 is relatively simple. The driver has to
+take in data for each channel from the test program and then wrap it into DMX
+frames. Those frames are then wrapped up into a DMX packet and sent out through
+the corresponding serial device. After my first draft of this implementation, I
+checked my work by passing through the serial data to a USB RS-232 adapter on my
+computer and hooking it up to an oscilloscope. From this testing, I was able to
+determine a few issues such as the UART transmitter sending data using the least
+significant bit first to the most significant bit and the maximum baud rate the
+device only being able to transmit up to 115.2 kbaud instead of the 250 kbaud
+required by the DMX512 specification. This meant that for every 1 bit sent by
+the OS, a receiving DMX device would interpret it as 2 bits. These issues caused
+a full rewrite and a new approach.
+
+After the rewrite, I began some real world testing with a DMX fixture, an ETC
+Colorsource PAR. By playing around with data timing, I was able to get the
+fixture to turn on. Albeit acting more as a strobe rather than a light. Many
+hours of tweaking later, I was able to get the light to fully turn on without
+strobing (see demo video in doc folder of the repo) although with no other
+control such as intensity or color. The next milestone after that was to
+reorganize my code, add documentation, implement a proper data flow by having a
+user program make a syscall to the kernel which would then call the driver, and
+clean up the user testing program.
+
+Overall, for a number of reasons, I’d consider the DMX project a failure
+especially considering the lackluster “demo”. However, there’s definitely a lot
+I learned along the way and many things I would do differently. For starters, it
+wasn’t until much later in the project that I found out there was a mismatch in
+the baud rates of the hardware and the DMX standard. While there’s a way it
+could technically work and be valid under the specifications, knowing what I
+know now, especially with real world differences between standards and
+implementations, I probably would not have spent the time to attempt this. On
+the plus side, I was able to gain experience debugging hardware/software on an
+electrical level. While part of this had to do with time constraints, on the
+next go around, I would definitely re-architect my driver. As of right now, a
+user program has to make one syscall for every packet they want to send. While
+this works on a basic level, the user ends up responsible for ensuring an
+appropriate data refresh rate. This can cause issues with blocking other
+programs from executing and limiting DMX output to just one program. Instead, I
+would have liked to use the FIFO feature of the 16550 so that the DMX driver
+itself can be responsible for constantly refreshing the data by periodically
+loading the 16 byte buffer of the 16550 with the current DMX universe state.
+This would then allow any user programs which need to send DMX data to make one
+syscall with the new universe state. To handle multiple programs sending DMX
+data at once, I could then implement a configurable setting which allows for
+either Highest Takes Precedent(HTP) or Lowest Takes Precedent (LTP). In the case
+of HTP, the universe states would be merged according to whatever the higher
+value of a channel is. In LTP, this is the opposite. The lower value for a
+channel would be chosen.
+
+--------------------------------------
+Network Stack Development Experiences
+Aaron Chan
+--------------------------------------
+
+I started this project early on around late March with most of my references
+being OSDev, Intel’s open source Intel 8255X driver manual and RFCs. I started
+with checking the DSL machines and confirming that the Intel 8255x existed
+(which the lspci command confirmed was there). I wrote some basic PCI functions
+for finding devices and was able to locate the device using both xv6 in QEMU and
+the baseline system on the lab machines. Afterwards, since the system would
+not boot properly if you added a certain amount of code, I decided to try
+making the driver in xv6 and then porting it once things in the baseline
+were working properly. I began with writing an official pci library for the
+code and trying to communicate with the chip. I did run into several issues
+which I will detail later, but I struggled a lot working with the Intel
+8255x.
+
+After struggling with the driver for a bit, I decided I should get something
+else done before I ran out of time and began implementing networking protocols.
+I referenced the RFCs for the exact specification and implemented each one
+(IPv4, Ethernet II, UDP). I had a design in mind where a programmer can
+build the networking stack they want by having a doubly linked list, with a
+struct containing function pointers to a networking layer implementation.
+This linked list would call the next network layer and carry out the next
+set of operations. To get things up and running quickly though, the
+networking stack is hardcoded currently though and I built a function that
+builds the entire packet, step by step by manually calling each function
+instead of using the function pointers. I wrote a test program that prints
+out the resulting packet, copied the result into a file and converted it to
+a pcap. Then I ran Wireshark and validated my packet. I ran into several
+issues with my checksums mostly, but I was able to debug easily and fix my
+problems quickly compared to dealing with the driver. To test receiving, I
+simply took a packet that I generated and was confirmed to be working and
+fed it back to see if I got the payload I originally gave it and confirmed
+that to work. Overall, this part of the project was extremely
+straightforward and I didn’t have as much trouble with it.
+
+I was working on trying to get things working in xv6, but eventually decided it
+was time to port things back when v3 of the baseline was released. To keep
+things simple and avoid dealing with hundreds of potential compile errors, I
+slowly moved over with my headers first and then slowly copying over functions,
+recompiling each time and trying to validate if things were working instead of a
+big-bang integration. I was still having issues initializing the device though.
+Throughout the project, I was having trouble getting things initialized despite
+consulting OSDev and the software developers manual frequently. One of my first
+issues was trying to get the memory mapped address for example. I was getting
+0x80000… as a MMIO address which did not seem right. After resolving issues with
+the PCI the addresses I was seeing seemed correct. One issue was that I had the
+data and config registers swapped in some function calls. Also, I forgot to
+bitmask properly when interfacing with registers. Eventually, I ran into issues
+that caused crashes constantly such as improperly accessing MMIO which caused a
+crash. Once I fixed my issues with initialization, I started porting my transmit
+functionality over. This seemed trivial at first, but when I attempted to send a
+packet while monitoring over Wireshark, the OS encountered an invalid opcode
+exception which I was stuck debugging and ultimately did not have enough time to
+figure out in time for the demo, which also meant not having time to port over
+my packet reception code.
+
+I would consider my project half successful. I managed to implement many
+networking protocols, but failed to have a fully working driver. I vastly
+underestimated the work it would take to get it working considering my past
+experience developing drivers. I think I came in with some good design
+philosophies, although some may have ended up being futile considering that
+there was a little extra work, that I couldn’t reap much benefit out of at this
+stage of the project. I didn’t end up just drag and dropping my driver code into
+different operating systems as intended, because I was getting dozens of errors
+and it would’ve been a nightmare to retest everything. I did learn a lot though
+about working with hardware that was more than using bare-metal or an RTOS, but
+less than a developed OS like UNIX. This forced me to learn more of the finer
+details of OS development, and I learned to work more with PCI and MMIO in the
+process as well. I gained a deeper understanding of networking concepts as well.
+I think given more time with a working baseline system, it would’ve been
+possible for me to get transmitting and receiving working in a week or two. The
+project overall piqued my interest in diving deeper and I could see myself
+trying to continue my work in xv6 and learning more in my free time. I think the
+design I had planned would’ve been good if the project had a longer lifespan and
+helped make things more maintainable.
+
+---------------------------------------------
+Intel HD Audio Driver Development Experience
+Will Bicks
+---------------------------------------------
+
+The development of this HD audio driver was driven largely by reading the
+official specification published by Intel, and comparing notes with 3rd-party
+sources including wikis, and reference implementations from the FreeBSD
+sources. The first step was to develop functions for working with PCI devices,
+which started out with a basic function to walk the PCI bus and match the first
+device with a given vendor ID and device ID. The first major milestone was
+detecting the HDA controller, and using the PCI base address register to read
+the controller’s version, verifying that it was properly connected and
+accessed. From there, I started with macros that could read and write the HDA
+controller’s memory mapped registers with defines for their various addresses,
+but I later realized that I could replace this with a single struct that
+defines the registers by names and packs down to their offsets in memory. This
+means I can cast the base address register to this struct and access its fields
+with C arrow lookups, which is especially useful for setting and clearing bits
+in a single line of code instead of the three required to read, modify, and
+re-write.
+
+From there, I completed an initialization routine that reset the controller per
+its datasheet, and started poking at more registers. Because the controller
+acts as a gateway to other devices on the HD Audio Link, it must then be used
+to discover how many codecs and their functions exist on the link. This
+resulted in function that walks the node tree up to three nodes deep, first
+enumerating how many codecs are connected, then enumerating the function groups
+in each codec, and then for each function group of the audio type, walking it’s
+subordinate widgets to discover analog to digital converters, digital to analog
+converters, and pin groups. The information and capabilities of each of these
+levels is printed to the terminal in a hierarchical fashion to demonstrate that
+the hardware is correctly discovered.
+
+Then, to ensure that the discovery succeeded on any host and not just QEMU, I
+refactored the PCI discovery logic to add a new function which searched for the
+PCI device by base class and subclass, using the values defined in the PCI spec
+for an HD Audio controller (part of the Multimedia Device base class). I also
+merged my PCI driver code with Aaron’s used for the network card so both
+devices rely on a single PCI driver. Finally, I started the process of
+adding functions to perform more functions with the HD audio bus, including
+to set the volume and mute status of widgets, and setting up DMA streams to
+output audio. Unfortunately, this was difficult to test under QEMU as our
+version doesn’t support the DSL hosts’s network stacks, and the system
+would not reliably boot on hardware.
+
+Throughout the project I went back and forth trying to iterate on the baseline
+on hardware alongside the editor, and was able to narrow down the issue to the
+spawning of processes like others had identified, but the nature of what seemed
+to be a triple fault that only occurred on hardware presented a difficult
+debugging situation. Eventually, I focused my attention on just trying to get
+as far as possible with QEMU, which is ultimately how I developed most of the
+driver. However, by adding a pause to the bootup sequence after HDA
+initialization and before process spawning I was able to verify that the HDA
+discovery process succeeds on real hardware as well.
+
