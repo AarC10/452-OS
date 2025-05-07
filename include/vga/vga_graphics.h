@@ -231,15 +231,6 @@ void vga_wait_vsync(void);
 void vga_delay_frames(uint32_t frame_count);
 
 /**
- * @brief Delay approximately ms milliseconds using frame delays.
- *
- * Converts ms to frame count by VGA_REFRESH_HZ and waits.
- *
- * @param ms Delay in milliseconds
- */
-void vga_delay_ms(uint32_t ms);
-
-/**
  * @brief Sleep for a given number of milliseconds based on PIT ticks.
  *
  * Uses the kernel's system_time (ticks) to block for accurate millisecond delays.

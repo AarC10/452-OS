@@ -105,9 +105,6 @@ void vga_wait_vsync(void)
 void vga_delay_frames(uint32_t frames)
     Delays by a number of display refresh frames.
 
-void vga_delay_ms(uint32_t ms)
-    Delays for a given number of milliseconds (approx).
-
 void vga_sleep_ms(uint32_t ms)
     Delays using `system_time`; blocks CPU until timeout.
 

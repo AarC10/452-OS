@@ -67,12 +67,6 @@ void vga_delay_frames(uint32_t frames)
     }
 }
 
-void vga_delay_ms(uint32_t ms)
-{
-    uint32_t frames = (ms * VGA_REFRESH_HZ + 500) / 1000;
-    vga_delay_frames(frames);
-}
-
 void vga_sleep_ms(uint32_t ms)
 {
     uint32_t end = system_time + (ms * CLOCK_FREQ + 500) / 1000;
