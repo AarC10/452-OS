@@ -1,0 +1,101 @@
+===============================================================================
+Module: Intel High Definition Audio Driver (hda)
+
+File:       doc/hda.txt
+Author:     Will Bicks <wab3463@rit.edu>
+Date:       2025-05-06
+
+Location:   src:        ./hda.c
+            headers:    ./include/hda.h
+===============================================================================
+OVERVIEW
+===============================================================================
+
+This driver provides an interface for interacting with an Intel High
+Definition Audio controller, as well as it's associated codecs via the HD Audio
+Link.
+
+The HD Audio system architecture is such that a single controller resides on
+the host's PCI bus, and serves as the master of a separate HD Audio Link that
+can support up to 15 codecs, each containing function groups and widgets for
+a variety of audio tasks including digital to analog conversion, analog to
+digital conversion, summing, delaying, inputting and outputting, and more.
+
+The spec was developed by Intel but is implemented by a variety of vendors.
+The documentation for the specification is available at:
+
+https://www.intel.com/content/dam/www/public/us/en/documents/product-specifications/high-definition-audio-specification.pdf
+
+This implementation was tested against the qemu-system-i386 2.3.0 build
+customized for the RIT Distributed Systems Labs, as well as the onboard audio
+stack on the ASUS PRIME H270-PRO motherboards with Realtek ALC887 codecs.
+
+===============================================================================
+MAJOR DATA STRUCTURES
+===============================================================================
+
+- `hda_regset`: Defines the initial set of ~40 registers accessible via the
+  PCI base address 0 register. Additional registers for streams are accessible
+  via the HDA_SD_{reg}(n) macros.
+
+- `hda_t`: Handle to an HDA controller taken as the first parameter to most HDA
+  operations. Currently it only holds a pointer to the PCI base address
+  register, but with new features this struct would be expected to accumulate
+  more fields that track internal driver state.
+
+===============================================================================
+API FUNCTIONS
+===============================================================================
+
+`void hda_init(hda_t* hda)`
+Given an empty HDA handle, find the first controller via PCI group code and
+initialize it, bringing it in and out of reset, and walking it's codecs,
+printing controller, codec, and widget details to the screen.
+
+```void hda_set_volume(hda_t* hda, uint8_t caddr, uint8_t nid, uint8_t volume,
+    				   bool_t input, bool_t output, bool_t mute);
+Given an initialized HDA handler, set the volume and mute status of the node
+specified by nodeid (nid) on codec specified by caddr. Two bool flags control
+whether the change is applied to the node's input, output, or both.
+
+===============================================================================
+INTERNALS & IMPLEMENTATION DETAILS
+===============================================================================
+
+The internal function `send_verb_imm` uses the immediate command interface to
+send verbs to the provided controller, which bypasses the need for verb /
+response ring buffers with interrupt handling, and meets the relatively light
+performance expectations for this system.
+
+The function `get_param` is a lightweight wrapper around the `send_verb`
+routine which sends Get Parameter verbs with a payload containing the parameter
+ID to be returned (from a set of defined parameters in `hda.h`.
+
+`enumerate_codecs` utilizes these functions to walk the node tree up to three
+nodes deep, first enumerating how many codecs are connected, then enumerating
+the function groups in each codec, and then for each function group of the
+audio type, walking it’s subordinate widgets to discover analog to digital
+converters, digital to analog converters, and pin groups. The information and
+capabilities of each of these levels is printed to the terminal in a
+hierarchical fashion to demonstrate that the hardware is correctly discovered.
+
+As development on this driver progresses, this function would likely be
+expanded to store some of this information about the codec node tree into
+the hda_t structure so that other functions can easily obtain information
+about and interact with nodes without re-walking the tree.
+
+===============================================================================
+STATUS
+===============================================================================
+
+This driver is successful in performing the HDA initialization routine and
+discovering codecs, function groups, and widgets in the node tree. While
+initial implementations for setting widget volume and mute statuses, and
+starting audio streams, more development and testing is required to enable
+these features.
+
+===============================================================================
+DEPENDENCIES
+===============================================================================
+- `pci.c` / `pci.h`: Provides PCI definitions and discovery functions.
+-------------------------------------------------------------------------------
