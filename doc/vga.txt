@@ -180,6 +180,10 @@ LIMITATIONS
   modules.
 - No Z-ordering or layering; all rendering is manual.
 - Font is fixed-width and monochrome (1-bit per pixel).
+- Currently does not expose any system calls; all rendering is performed in 
+  kernel space. To allow user processes to access graphics features safely, a 
+  set of controlled syscalls or a userland API layer would need to be defined 
+  and implemented in future work.
 
 
 ===============================================================================
